@@ -4,119 +4,221 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#F2F0EB" />
-  <meta name="description" content="rizet ngan. — 一些想法，和它们长出来的样子。" />
-  <title>rizet ngan. — The Open Studio</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2213%22%20fill%3D%22%23F2F0EB%22/%3E%3Ctext%20x%3D%229%22%20y%3D%2247%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2243%22%20fill%3D%22%23202321%22%3Er%3C/text%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2244%22%20r%3D%226%22%20fill%3D%22%23A04D3E%22/%3E%3C/svg%3E%0A" />
+  <meta name="description" content="rizet ngan. — The Product Atelier. 一座可以探索的产品创作工坊：AI 产品思考、独立作品 Actape 与 Snug for Windows，以及从构思到成品的真实实践。" />
+  <title>rizet ngan. — The Product Atelier</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2213%22%20fill%3D%22%23F2F0EB%22/%3E%3Ctext%20x%3D%2210%22%20y%3D%2247%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2243%22%20fill%3D%22%23202321%22%3Er%3C/text%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2244%22%20r%3D%226%22%20fill%3D%22%23A04D3E%22/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  
 </head>
 <body>
-  <div class="shell" id="app">
-    <div class="scene-viewport" id="viewport" role="region" aria-label="可交互的三维个人工作室">
-      <div class="atmosphere"></div>
-      <div class="lightwash"></div>
-      <div id="world" class="world" role="group" aria-label="可探索的工作室物品">
-        <div class="surface floor"></div>
-        <div class="surface back-wall"></div>
-        <div class="surface left-wall"></div>
-        <div class="surface right-wall"></div>
-        <div class="surface skirting back-skirting"></div>
-        <div class="floor-carpet"></div>
-        <div class="floor-shadow desk-shadow"></div>
-        <div class="window" id="window"><div class="window-inner"><span class="window-sun"></span><span class="window-frame-a"></span><span class="window-frame-b"></span></div></div>
-        <div class="wall-top-band"></div>
-        <button class="world-object gallery-card gallery-one" data-focus="work" data-open="work" aria-label="打开作品墙 Actape">
-          <span class="gallery-art art-one"><i></i><b>ACTAPE</b><small>MAKE IT REPEATABLE</small></span>
-          <span class="gallery-bottom">01 <em>Independent project</em></span>
-        </button>
-        <button class="world-object gallery-card gallery-two" data-focus="work" data-open="snug" aria-label="打开作品墙 Snug for Windows">
-          <span class="gallery-art art-two"><i></i><b>SNUG</b><small>BETTER FROM ANYWHERE</small></span>
-          <span class="gallery-bottom">02 <em>Cross-platform</em></span>
-        </button>
-        <div class="gallery-wall-label">SELECTED WORKS <span>↗</span></div>
-        <div class="shelf-shell">
-          <div class="shelf-body"><span class="shelf-board s1"></span><span class="shelf-board s2"></span><span class="shelf-board s3"></span><span class="shelf-board s4"></span>
-            <div class="books books-top"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="books books-mid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="books books-bottom"><i></i><i></i><i></i><i></i></div>
-            <div class="shelf-note">NOTES<br><span>THINKING IN PROGRESS</span></div>
-          </div>
-        </div>
-        <button class="world-object shelf-hotspot" data-focus="notes" data-open="notes" aria-label="打开笔记书架"></button>
-        <div class="now-panel">
-          <div class="now-top">THE CURRENT THINGS <span>03 / 04</span></div>
-          <div class="now-line"></div><div class="now-big">What I’m<br>making<span>.</span></div>
-          <div class="now-sticky sticky-a">AI tools</div><div class="now-sticky sticky-b">Product<br>thinking</div>
-          <div class="now-sticky sticky-c">2026 / NOW</div>
-        </div>
-        <button class="world-object now-hotspot" data-focus="now" data-open="now" aria-label="查看最近在做什么"></button>
-        <div class="desk-top"></div><div class="desk-front"></div><div class="desk-side"></div>
-        <div class="desk-leg leg-left"></div><div class="desk-leg leg-right"></div>
-        <div class="desk-leg leg-back-left"></div><div class="desk-leg leg-back-right"></div>
-        <div class="display-stand"></div><div class="display-foot"></div>
-        <button class="world-object display" data-focus="lab" data-open="lab" aria-label="打开工作台实验室">
-          <span class="display-screen"><span class="terminal-bar"><i></i><i></i><i></i><small>rizet / lab</small></span><strong>ideas<br>to things<span>.</span></strong><small class="terminal-bottom">EXPLORE THE LAB &nbsp; ↗</small></span>
-        </button>
-        <div class="keyboard"></div><div class="mouse-prop"></div>
-        <div class="paper paper-one"><span>sketches / 01</span><i></i><i></i><i></i></div>
-        <div class="paper paper-two"><span>prototype</span><i></i><i></i></div>
-        <div class="cup"><div class="cup-rim"></div></div>
-        <div class="desk-lamp-base"></div><div class="desk-lamp-stem"></div><div class="desk-lamp-head"></div>
-        <div class="chair-seat"></div><div class="chair-back"></div><div class="chair-base"></div>
-        <div class="plant-pot"></div><div class="plant-trunk"></div><div class="plant-leaf leaf-a"></div><div class="plant-leaf leaf-b"></div><div class="plant-leaf leaf-c"></div>
-        <div class="plinth"><span class="plinth-top"></span></div>
-        <button class="world-object about-block" data-focus="about" data-open="about" aria-label="了解 rizet ngan"><span>r<span class="accent">.</span>n</span><small>ABOUT THE MAKER</small></button>
-        <div class="floor-mark">RIZET STUDIO &nbsp; / &nbsp; 2026</div>
-      </div>
-      <div class="scene-shading"></div>
-      <div class="scene-vignette"></div>
-      <div class="scene-loading" id="sceneLoading" aria-hidden="true"><span class="loader-bar"></span></div>
+  <div class="atelier-shell" id="app">
+    <!-- 3D WebGL Viewport -->
+    <div class="viewport" id="viewport" role="region" aria-label="rizet ngan. The Product Atelier 三维建筑展廊与产品工坊">
+      <canvas id="atelierCanvas"></canvas>
+      <div class="canvas-grain" aria-hidden="true"></div>
+      <div class="canvas-vignette" aria-hidden="true"></div>
     </div>
+
+    <!-- Top Navigation Bar -->
     <header class="site-header">
-      <a class="wordmark" href="#home" id="brandHome" aria-label="rizet ngan 返回首页">rizet ngan<span>.</span></a>
-      <nav aria-label="主要导航" class="main-nav">
-        <button data-goto="work">作品</button>
-        <button data-goto="notes">笔记</button>
-        <button data-goto="lab">实验室</button>
-        <button data-goto="about">关于</button>
+      <a class="wordmark" href="#entrance" id="brandHome" aria-label="rizet ngan. 返回入口前厅">
+        rizet ngan<span class="dot">.</span>
+      </a>
+
+      <nav class="main-nav" aria-label="主要空间导航">
+        <a href="#work" data-goto="work">Work</a>
+        <a href="#lab" data-goto="lab">Lab</a>
+        <a href="#notes" data-goto="notes">Notes</a>
+        <a href="#about" data-goto="about">About</a>
       </nav>
-      <button class="mode-switch" id="modeSwitch" aria-label="切换为第一人称漫游">
-        <span class="mode-indicator"></span><span id="modeLabel">导览模式</span><kbd>F</kbd>
-      </button>
+
+      <div class="header-actions">
+        <button class="mode-toggle" id="modeSwitch" type="button" aria-pressed="false" aria-label="切换 Mini Explore 第三人称角色探索模式">
+          <span class="mode-dot" aria-hidden="true"></span>
+          <span class="mode-text" id="modeLabel">Guided</span>
+          <kbd class="mode-kbd" aria-hidden="true">F</kbd>
+        </button>
+      </div>
     </header>
-    <section class="intro" id="intro" aria-label="欢迎来到 rizet ngan 的工作室">
-      <div class="intro-kicker"><span class="tiny-line"></span> THE OPEN STUDIO <span class="intro-index">/ 001</span></div>
-      <h1>一些想法，<br><em>和它们长出来的样子。</em></h1>
-      <p>一间存放作品、思考与小实验的私人工作室。</p>
-      <div class="intro-actions">
-        <button class="button-primary" id="enterStudio">进入工作室 <span>↗</span></button>
-        <button class="button-quiet" id="browseDirect">直接浏览作品 <span>→</span></button>
+
+    <!-- Entrance Editorial Title Overlay (Dismisses smoothly once visitor enters) -->
+    <section class="entrance-hero" id="entranceHero" aria-label="欢迎来到 The Product Atelier">
+      <div class="hero-kicker">
+        <span class="rule-line" aria-hidden="true"></span>
+        <span>THE PRODUCT ATELIER</span>
+        <span class="hero-index">/ 01</span>
+      </div>
+      <h1>把想法，<br><em>做成可触摸的产品。</em></h1>
+      <p class="hero-sub">
+        rizet ngan. 的个人产品创作工坊 — 收录独立软件、原型实验与产品思考。
+      </p>
+      <div class="hero-actions">
+        <button class="btn-primary" id="enterGuided" type="button">
+          进入展廊导览 <span aria-hidden="true">↗</span>
+        </button>
+        <button class="btn-secondary" id="enterMiniDirect" type="button">
+          Mini 角色探索 <kbd>F</kbd>
+        </button>
+        <a class="btn-link" href="#work" id="browseWorksDirect">直接看作品 →</a>
       </div>
     </section>
-    <div class="visit-chip" id="visitChip" aria-live="polite">
-      <span class="visit-overline" id="visitOverline">01 / THE STUDIO</span>
-      <div class="visit-title" id="visitTitle">欢迎进入工作室</div>
-      <p id="visitDescription">移动鼠标探索，点击物品了解更多。</p>
-      <button class="visit-action" id="visitAction">打开详情 <span>↗</span></button>
+
+    <!-- Restrained Spatial Focus Card (Guided Explore) -->
+    <aside class="spatial-card" id="spatialCard" aria-live="polite">
+      <div class="card-meta">
+        <span id="cardOverline">01 / ENTRANCE</span>
+        <span class="card-reveal-pill" id="cardRevealState">SKETCH → REALITY</span>
+      </div>
+      <h2 id="cardTitle">入口前厅</h2>
+      <p id="cardDesc">沿着建筑走廊向前，从线稿进入真实材质的产品工坊。</p>
+      <div class="card-actions">
+        <button class="card-open-btn" id="cardOpenBtn" type="button">
+          查看详情 <span aria-hidden="true">↗</span>
+        </button>
+        <button class="card-next-btn" id="cardNextBtn" type="button" aria-label="前往下一站">
+          下一站 →
+        </button>
+      </div>
+    </aside>
+
+    <!-- Wall Lift Exhibit Preview Card (Appears cleanly during Mini Explore Wall Lift) -->
+    <aside class="exhibit-preview" id="exhibitPreview" aria-hidden="true" aria-live="polite">
+      <div class="exhibit-eyebrow" id="exhibitEyebrow">WORK ARCHIVE / 01</div>
+      <h2 id="exhibitTitle">Actape</h2>
+      <p id="exhibitLead">把重复的鼠标与键盘操作，变成可录制、可编辑、可复用的工作流程。</p>
+      <div class="exhibit-actions">
+        <button class="btn-primary btn-sm" id="exhibitOpenBtn" type="button">
+          打开完整详情 <kbd>E</kbd>
+        </button>
+        <button class="btn-ghost btn-sm" id="exhibitBackBtn" type="button">
+          降回地面 <kbd>Esc</kbd>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Quiet Contextual Prompt (Object Focus / Auto Mount hint in Mini Explore) -->
+    <div class="context-prompt" id="contextPrompt" role="status" aria-live="polite">
+      <span class="prompt-dot" aria-hidden="true"></span>
+      <span id="contextPromptText">Prototype Bench · 按 E 打开实验室</span>
     </div>
-    <div class="bottom-bar">
-      <div class="bottom-left"><span class="live-dot"></span><span id="locationText">THE OPEN STUDIO</span><span class="bar-divider"></span><span class="clock" id="localClock">SPACE / 01</span></div>
-      <div class="bottom-right"><span id="controlHint">滚轮探索空间</span><span class="mouse-wheel" aria-hidden="true"><i></i></span><button id="helpButton" aria-label="查看操作说明">?</button></div>
+
+    <!-- Bottom Minimal Status & Chapter Rail -->
+    <footer class="bottom-bar">
+      <div class="bottom-left">
+        <span class="status-dot" id="statusDot" aria-hidden="true"></span>
+        <span class="zone-name" id="zoneName">ENTRANCE</span>
+        <span class="divider" aria-hidden="true"></span>
+        <span class="state-badge" id="stateBadge">GUIDED EXPLORE</span>
+      </div>
+
+      <div class="chapter-dots" id="chapterDots" role="tablist" aria-label="空间章节进度">
+        <button type="button" role="tab" data-goto="entrance" aria-label="01 Entrance"></button>
+        <button type="button" role="tab" data-goto="corridor" aria-label="02 The Corridor"></button>
+        <button type="button" role="tab" data-goto="lab" aria-label="03 Prototype Bench"></button>
+        <button type="button" role="tab" data-goto="work" aria-label="04 Work Archive"></button>
+        <button type="button" role="tab" data-goto="notes" aria-label="05 Notes Library"></button>
+        <button type="button" role="tab" data-goto="about" aria-label="06 About"></button>
+      </div>
+
+      <div class="bottom-right">
+        <span class="control-hint" id="controlHint">滚轮推进镜头 · 点击物件进入</span>
+        <button class="icon-btn" id="helpBtn" type="button" aria-label="查看交互方式">?</button>
+      </div>
+    </footer>
+
+    <!-- Subtle Toast Feedback -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- Accessible Editorial Reading Overlay (HTML content, never blocked by 3D) -->
+    <div class="reading-overlay" id="readingOverlay" aria-hidden="true">
+      <div class="reading-backdrop" id="readingBackdrop"></div>
+      <article class="reading-panel" id="readingPanel" role="dialog" aria-modal="true" aria-labelledby="readingTitle" tabindex="-1">
+        <div class="reading-header">
+          <span class="reading-index" id="readingIndex">RIZET NGAN / WORK</span>
+          <button class="reading-close" id="readingClose" type="button" aria-label="关闭阅读并返回空间">
+            返回空间 <kbd>Esc</kbd>
+          </button>
+        </div>
+        <div class="reading-scroll" id="readingScroll">
+          <div class="reading-body" id="readingBody"></div>
+        </div>
+        <div class="reading-footer">
+          <span>rizet ngan<span class="dot">.</span></span>
+          <span>THE PRODUCT ATELIER</span>
+        </div>
+      </article>
     </div>
-    <div class="roam-reticle" id="reticle" aria-hidden="true"><i></i></div>
-    <div class="roam-notice" id="roamNotice" role="status">W A S D 移动　·　鼠标观察　·　E 交互　·　Esc 返回</div>
-    <div class="scene-toast" id="toast" role="status"></div>
-    <div class="content-overlay" id="contentOverlay" aria-hidden="true">
-      <div class="content-backdrop" id="contentBackdrop"></div>
-      <aside class="content-panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle" tabindex="-1" id="contentPanel">
-        <div class="panel-top"><span id="panelIndex">RIZET NGAN / WORK</span><button id="closePanel" aria-label="关闭详情并返回工作室">返回空间 <span>✕</span></button></div>
-        <div class="panel-scroll" id="panelScroll"><div id="panelBody"></div></div>
-        <div class="panel-footer"><span>rizet ngan.</span><span>THE OPEN STUDIO / 2026</span></div>
-      </aside>
+
+    <!-- Controls / Help Modal -->
+    <div class="help-overlay" id="helpOverlay" aria-hidden="true">
+      <div class="help-backdrop" id="helpBackdrop"></div>
+      <div class="help-modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" tabindex="-1" id="helpModal">
+        <div class="help-top">
+          <span>EXPLORATION MODES</span>
+          <button class="icon-btn" id="helpClose" type="button" aria-label="关闭说明">✕</button>
+        </div>
+        <h2 id="helpTitle">两种节奏，同一座创作工坊。</h2>
+        <div class="help-columns">
+          <div class="help-col">
+            <h3>Guided Explore（默认）</h3>
+            <ul>
+              <li>鼠标滚轮沿建筑动线平滑浏览六个空间</li>
+              <li>直接点击场景中的工作台、展墙、书架或顶部导航</li>
+              <li>打开阅读面板后，滚轮只控制正文阅读</li>
+            </ul>
+          </div>
+          <div class="help-col">
+            <h3>Mini Explore（按 F 切换）</h3>
+            <ul>
+              <li><strong>WASD / 方向键</strong>：移动微型雕塑角色</li>
+              <li><strong>鼠标左/右键拖拽</strong>：360° 环绕与自由调整视角</li>
+              <li><strong>单击地面 / 物件</strong>：角色自动行走或靠近目标</li>
+              <li><strong>自动情境动作</strong>：走近工作台自动登桌；靠近展墙作品自动悬浮预览</li>
+              <li><strong>鼠标滚轮</strong> 拉近 / 拉远 · <strong>R</strong> 复位自由视角</li>
+              <li><strong>E</strong> 打开当前详情 · <strong>Esc</strong> 逐级返回或退出</li>
+            </ul>
+          </div>
+        </div>
+        <div class="help-footer">
+          <button class="btn-primary" id="helpDone" type="button">继续探索</button>
+        </div>
+      </div>
     </div>
-    <div class="help-overlay" id="helpOverlay" aria-hidden="true"><div class="help-scrim"></div><div class="help-card"><div class="help-header"><span>CONTROLS / 操作方式</span><button id="closeHelp" aria-label="关闭操作说明">✕</button></div><h2>用你喜欢的方式探索。</h2><div class="help-grid"><div><strong>导览模式</strong><p>鼠标点击物体 · 滚轮切换空间 · 顶部导航直达内容</p></div><div><strong>自由漫游</strong><p>按 F 切换 · WASD 移动 · 鼠标观察 · E 交互 · Esc 退出</p></div></div><button class="button-primary" id="helpDone">开始探索 <span>↗</span></button></div></div>
-    <div class="fallback" id="fallback"><h2>rizet ngan.</h2><p>你的浏览器暂不支持空间视图，仍可直接浏览内容。</p><div><button data-goto="work">作品</button><button data-goto="notes">笔记</button><button data-goto="lab">实验室</button><button data-goto="about">关于</button></div></div>
+
+    <!-- Accessible No-WebGL / Static Fallback -->
+    <section class="webgl-fallback" id="webglFallback" aria-hidden="true">
+      <div class="fallback-inner">
+        <div class="wordmark">rizet ngan<span class="dot">.</span></div>
+        <h1>The Product Atelier</h1>
+        <p>当前浏览器环境暂未启用 WebGL 3D 视图，你仍可以直接阅读所有作品、实验与个人思考。</p>
+        <div class="fallback-links">
+          <button type="button" data-open-direct="actape">01 · Actape</button>
+          <button type="button" data-open-direct="snug">02 · Snug for Windows</button>
+          <button type="button" data-open-direct="lab">03 · Prototype Bench</button>
+          <button type="button" data-open-direct="notes">04 · Notes Library</button>
+          <button type="button" data-open-direct="about">05 · About rizet ngan.</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEO & Semantic Direct Content Links (Accessible to screen readers & crawlers) -->
+    <noscript>
+      <main style="max-width:720px;margin:64px auto;padding:24px;font-family:Georgia,serif;color:#202321;">
+        <h1>rizet ngan. — The Product Atelier</h1>
+        <p>AI 产品经理、产品思考者与独立创造者的个人产品工坊。</p>
+        <ul>
+          <li><a href="https://github.com/rizetngan/Actape">Actape — 跨 macOS / Windows 鼠标键盘宏工具</a></li>
+          <li><a href="https://github.com/rizetngan/snug-for-windows">Snug for Windows — Windows 社区移植远程操作工具</a></li>
+          <li><a href="https://github.com/rizetngan">GitHub: rizetngan</a></li>
+        </ul>
+      </main>
+    </noscript>
   </div>
-<script src="script.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="atelier-scene.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

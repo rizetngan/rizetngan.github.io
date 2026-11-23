@@ -1,45 +1,56 @@
 # rizet ngan. — The Product Atelier
 
-> A personal creative space for products, thinking and independent experiments.
+> 一座可以探索的产品创作工坊 — Warm Architectural Minimalism × WebGL 3D × Third-Person Mini Explore.
 
 **Live site:** https://rizetngan.github.io  
-**Status:** CSS-3D interaction prototype. The final visual design and WebGL experience are **not** implemented yet.
+**Status:** Production WebGL 3D Atelier + Dual Exploration Modes (`Guided Explore` & `Mini Explore`).
 
-## Read this first (Gemini / contributors)
+## Architecture & Visual Direction
 
-- [GEMINI_HANDOFF.md](./GEMINI_HANDOFF.md) — **current, authoritative creative direction**: architectural gallery × product atelier; Precision Sketch → Material Reality; ITOM-inspired exploration.
-- [DESIGN_SYSTEM_V4.md](./DESIGN_SYSTEM_V4.md) — warm stone / terracotta palette and visual foundations.
-- [QA_REPORT.md](./QA_REPORT.md) — interaction prototype verification.
+- **Style:** Warm Architectural Minimalism (`Ivory #F2F0EB`, `Ink #202321`, `Terracotta #A04D3E`, `Stone #E4E0D7`, `Walnut #8E715F`, `Sketch Graphite #77756F`).
+- **Visual Language:** **Precision Sketch → Material Reality** — architectural linework (`EdgesGeometry`) and muted ivory surfaces progressively develop into tactile limestone, plaster, smoked walnut, and UI screens as visitors approach, while preserving explored areas subtly.
+- **Zero-Build Static Deployment:** Runs natively on GitHub Pages (`index.html`, `styles.css`, `atelier-scene.js`, `app.js`, Three.js r128).
 
-## Existing prototype
+## Spatial Zones
 
-The current page is a no-build proof of concept for camera/navigation/reading behavior, not the final look.
+1. **Entrance** — Quiet travertine foyer, architectural portal ribs, and editorial brand mark.
+2. **The Corridor** — Rhythmic open gallery spine leading toward the studio core.
+3. **Prototype Bench (Lab)** — Smoked walnut drafting desk, studio monitor, mobile prototype stand, drafting sketchpad, desk lamp, and terracotta mug.
+4. **Work Archive** — Recessed gallery wall featuring **Actape** and **Snug for Windows**.
+5. **Notes Library** — Floor-to-ceiling walnut & limestone bookcase and reading lectern.
+6. **About Corner** — Fluted plinth with sculptural `r.n` monogram, wall manifesto, and indoor olive tree.
 
-- Default Guided mode: scroll or click to explore, navigation jumps to sections.
-- Free Roam: **F** to toggle; **WASD** to move; mouse to look; **E** to interact; **Esc** to leave.
-- Reading panels are ordinary HTML and take over scrolling.
-- Mobile visitors get a simplified guided experience.
+## Dual Interaction Modes
 
-Files: `index.html`, `styles.css`, `script.js`.
+### Mode A: Guided Explore (Default & Mobile)
+- Mouse wheel advances smoothly along 6 curated architectural camera viewpoints (interruptible damping).
+- Direct 3D click on any object focuses or opens its accessible HTML reading panel.
+- Top navigation (`Work`, `Lab`, `Notes`, `About`) and direct hash links (`#work`, `#actape`, `#snug`, `#lab`, `#notes`, `#about`) work without keyboard controls.
+- Reading panels take over vertical scrolling cleanly and restore the exact prior space state on close (`Esc`).
 
-To preview locally, open `index.html` or serve the repository folder with `python -m http.server 8080`.
+### Mode B: Mini Explore (Press `F` or Click Mode Toggle)
+- Spawns an original **abstract sculptural human figure** (graphite coat, ivory head/collar, minimal terracotta lapel accent) with 6 procedural animation states (`Idle`, `Walk`, `Turn`, `Auto Mount`, `Float / Hover`, `Land`).
+- **Controls:** `WASD` / Arrow keys for eased movement; mouse drag for oblique top-down (`34°–51°`) third-person camera orbit (no forced pointer lock); click floor or objects to auto-walk; `E` to open details; `Esc` to step back or exit.
+- **Contextual Actions (User chooses direction, system handles complex motion):**
+  - **Auto Mount:** Approach the front of the Prototype Bench with sustained forward intent to gracefully arc onto the walnut desktop, explore the monitor/phone/sketchpad, and step off the edge back to the studio floor.
+  - **Wall Lift:** Approach configured Work Archive exhibits (**Actape** / **Snug for Windows**) with sustained intent to gently float upward into an exhibit preview framing, complete local sketch-to-material reveal, and open full details (`E`) or descend cleanly (`S` / `Esc`).
+  - **Object Focus:** Gentle camera shift and restrained prompt when nearing Notes Library, About Corner, or desktop devices.
 
-## Final design goal
+## Real Works Featured
 
-**rizet ngan.** is a long-term personal maker brand, not a job résumé. The approved direction is **The Product Atelier**, an explorable architectural corridor and personal workspace. Interaction and art direction must be one coherent language: **Precision Sketch → Material Reality** with medium-strength sketch-to-finished-object reveal.
+- [Actape](https://github.com/rizetngan/Actape) — Cross-platform macOS & Windows macro recording, editing, and replay tool.
+- [Snug for Windows](https://github.com/rizetngan/snug-for-windows) — Community-maintained Windows port of Snug for portrait mobile remote control.
 
-Colors: Ivory `#F2F0EB` · Ink `#202321` · Terracotta `#A04D3E` · Stone `#E4E0D7` · Walnut `#8E715F` · Graphite `#77756F`.
+## Documentation
 
-The old CSS graybox is intentionally replaceable. Future work can use Astro, TypeScript, React Three Fiber, Drei and GSAP, but must keep static GitHub Pages deployment and readable content routes.
+- [DESIGN_SYSTEM_V5.md](./DESIGN_SYSTEM_V5.md) — Locked visual tokens, typography, and Mini Explore interaction specification.
+- [GEMINI_HANDOFF.md](./GEMINI_HANDOFF.md) — Updated architectural handoff and implementation notes.
+- [QA_REPORT.md](./QA_REPORT.md) — Visual and interaction verification summary.
 
-## References
+## V6.1 — Crafted Maquette direction
 
-- [ITOM portfolio](https://itomdev.com/) · [source](https://github.com/ITomPoland/portfolio-itom)
-- [Henry Heffernan](https://github.com/henryjeff/portfolio-website)
-- [MelodyZ](https://github.com/ZouYue123321/nihao)
-- Real projects: [Actape](https://github.com/rizetngan/Actape) · [Snug for Windows](https://github.com/rizetngan/snug-for-windows)
+The V6.1 update refines the model-gallery visual system, strengthens the miniature character scale and replaces the restricted high-angle mini camera with a free orbit / raycast collision boom. The full criteria are in [DESIGN_SYSTEM_V6.md](./DESIGN_SYSTEM_V6.md).
 
-Third-party personal assets (models, illustrations, music, textures, copy) require appropriate permission. Do not reuse ITOM's original art.
+Mini keyboard/mouse: `F` mode, WASD move, **left/right mouse drag** to orbit, **wheel** to zoom, `R` reset view, `E` interact, `Esc` back. Guided mouse wheel still advances the six chapters. Neither mode depends on pointer lock.
 
----
-Maintained by rizet ngan.
+This release still uses the uploaded WebGL implementation and procedural product presentation art. Replacing mock art with verified product screenshots and advancing detailed 3D asset modeling are intentional follow-up improvements, not claims of completed photorealistic art.
