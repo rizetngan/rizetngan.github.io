@@ -1,25 +1,23 @@
-# Prototype V4 / Browser QA
+# V6.1 Quality Gate — Crafted Maquette
 
-2026-11-23 · Chromium headless · desktop 1440 × 900 / mobile 390 × 844
+## Completed source-level verification
 
-## 已通过
+- [x] Full Gemini WebGL code from the user-provided ZIP restored as the implementation baseline, rather than the older remote CSS graybox.
+- [x] Unified V6 art system includes an architectural plinth, shadow edge, gallery joints, softer lighting, restrained linework, an original small sculpture figure and simplified editorial HUD.
+- [x] Mini camera pitch range changed to 4–75°, 360° yaw; mouse left/right drag and wheel zoom; R resets to default follow angle.
+- [x] Camera boom collision now tests architectural meshes by raycast; requested zoom and collided distance are independent; enter/exit exhibit respects camera orbit state.
+- [x] `node --check app.js` and `node --check atelier-scene.js` passed.
+- [x] `git diff --check` passed. Upload blob SHAs matched local `git hash-object` exactly.
+- [x] Branch `feat/crafted-maquette-v6` created and cloned on connected Windows computer.
 
-- 首屏正常渲染，品牌和空间配色符合 V4 Token；无 JS 异常
-- 点击“进入工作室”进入导览状态
-- 滚轮切换到 Lab 区域；顶部导航可直接聚焦 Work / Notes 等位置
-- 场景内作品画框可点击，并可进入作品详情
-- 内容面板支持关闭 / Esc 返回，恢复空间
-- F 进入自由漫游，WASD 状态驱动摄像机，Esc 回到导览
-- 手机首屏在 390px 宽时无孤字换行
-- 手机端导航与详情阅读面板可正常使用
+## Browser QA status
 
-## 本轮尚未进行的测试
+- [ ] **Full visual WebGL and interaction screenshot suite is not yet verified.** The isolated local Chromium session cannot reach the remote Three.js CDN; the remote Windows headless Chrome attempt did not produce a screenshot. Do not treat source checks as proof of 3D frame quality.
+- [ ] Run the actual walkthrough: guided chapter scroll; mini orbit at 5/25/70 degrees; 360° right drag; zoom; wall boom; auto mount/dismount; wall lift; HTML reading return; mobile guide.
+- [ ] Replace illustrative Actape/Snug graphics with screenshots verified against original products, if available.
 
-- 实际 Windows / macOS 上的鼠标指针锁定与游戏式控制手感
-- Safari / Firefox 和多款手机的兼容性
-- 高精度 3D 碰撞与模型性能测试：尚未进入 WebGL 建模阶段
-- 真实阅读内容、项目截图替换与上线 SEO
+## Remaining limitations
 
-## 重要范围说明
-
-当前交付是 **可以操作的灰盒**，使用 CSS 3D 构造空间。场景、材质、人物视角与交互原型均可点击体验，但尚不是最终的 Three.js 场景，也不是已经发布的个人官网。正式版需要在灰盒验收后替换成 GLB 模型及 Astro / R3F 渲染层。
+- Legacy Three.js r128 via cdnjs is still an online runtime dependency, not vendored.
+- Current scene still uses procedural meshes rather than fully authored GLB hero assets; V6.1 improves the visual design and framing, but should not be mistaken for a photoreal 3D asset production.
+- Automatic traversal uses authored routes rather than Rapier physics and should be visually checked before expanding the world.
