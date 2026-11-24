@@ -301,6 +301,8 @@
     mode: 'GUIDED',
     preReadingMode: 'GUIDED',
     entered: false,
+    miniResume: null,
+    nearbyExhibit: null,
     chapterIdx: 0,
     helpOpen: false,
     prevFocusEl: null,
@@ -335,7 +337,7 @@
     desiredCamLook: CHAPTERS[0].camLook.clone(),
     orbitYaw: 0,
     orbitPitch: 0.40, // ~23° relaxed eye-level exploration; adjustable from 4° to 75°
-    orbitDist: 3.15, // user-requested camera arm length; does not change on collision
+    orbitDist: 2.85, // user-requested camera arm length; does not change on collision
     collisionDist: 3.15, // actual arm length after architectural obstruction
     focusReturn: null, // saved user-selected view before cinematic exhibit framing
     pointerId: null,
@@ -481,7 +483,9 @@
     // Quiet Object Focus / Mount contextual prompt
     let promptText = '';
     if (STATE.mode === 'MINI_WALKING') {
-      if (STATE.focusedObject) {
+      if (STATE.nearbyExhibit) {
+        promptText = STATE.nearbyExhibit.title + ' · E 查看';
+      } else if (STATE.focusedObject) {
         promptText = `${STATE.focusedObject.label} · 按 E 打开详情`;
       } else if (STATE.surface === 'floor' && isNearDeskMount(STATE.charPos)) {
         promptText = '继续向工作台前行即可自动登桌';
@@ -510,6 +514,7 @@
     if (STATE.helpOpen) closeHelp();
     if (STATE.mode !== 'GUIDED') exitMiniExplore({ jumpToNearest: false });
 
+    if (idx !== STATE.chapterIdx) STATE.miniResume = null;
     STATE.chapterIdx = idx;
     if (!openHero) setEntered();
 
@@ -556,7 +561,14 @@
     STATE.targetYaw = STATE.charYaw;
     STATE.orbitYaw = STATE.charYaw - Math.PI;
     STATE.orbitPitch = 0.40; // ~23° natural follow, never forced back after interacting
-    STATE.orbitDist = 3.15;
+    STATE.orbitDist = 2.85;
+    const resume=STATE.miniResume;
+    if(resume && resume.chapter===STATE.chapterIdx){
+      STATE.surface=resume.surface;
+      STATE.charPos.copy(resume.pos);
+      STATE.charYaw=resume.charYaw;STATE.targetYaw=resume.charYaw;
+      STATE.orbitYaw=resume.yaw;STATE.orbitPitch=resume.pitch;STATE.orbitDist=resume.dist;
+    }
     STATE.collisionDist = STATE.orbitDist;
 
     world.miniCharacter.group.position.copy(STATE.charPos);
@@ -573,7 +585,18 @@
   function exitMiniExplore({ jumpToNearest = true } = {}) {
     if (STATE.mode === 'GUIDED') return;
     releaseMiniMouse();
+    if(STATE.traversal){
+      STATE.charPos.copy(STATE.traversal.safeReturnPos);
+      STATE.surface='floor';
+    }else if(STATE.activeExhibit){
+      STATE.charPos.copy(STATE.activeExhibit.safeFloorPos);
+      STATE.surface='floor';
+    }
+    if(STATE.focusReturn){
+      STATE.orbitYaw=STATE.focusReturn.yaw;STATE.orbitPitch=STATE.focusReturn.pitch;STATE.orbitDist=STATE.focusReturn.distance;
+    }
     STATE.focusReturn = null;
+    STATE.nearbyExhibit=null;
     STATE.mode = 'GUIDED';
     STATE.keys.clear();
     STATE.walkTarget = null;
@@ -598,6 +621,8 @@
       STATE.desiredCamLook.copy(CHAPTERS[bestIdx].camLook);
     }
 
+    STATE.miniResume=jumpToNearest?{chapter:STATE.chapterIdx,pos:STATE.charPos.clone(),surface:STATE.surface,charYaw:STATE.charYaw,
+      yaw:STATE.orbitYaw,pitch:STATE.orbitPitch,dist:STATE.orbitDist}:null;
     updateUI();
   }
 
@@ -688,6 +713,7 @@
     STATE.liftIntentTimer = 0;
     STATE.focusReturn = { yaw: STATE.orbitYaw, pitch: STATE.orbitPitch, distance: STATE.orbitDist };
     STATE.activeExhibit = exhibit;
+    STATE.nearbyExhibit=null;
     const startPos = STATE.charPos.clone();
     const endPos = exhibit.hoverPos.clone();
 
@@ -1171,7 +1197,7 @@
       e.preventDefault();
       STATE.orbitYaw = STATE.charYaw - Math.PI;
       STATE.orbitPitch = 0.40;
-      STATE.orbitDist = 3.15;
+      STATE.orbitDist = 2.85;
       return;
     }
 
@@ -1180,6 +1206,9 @@
         e.preventDefault();
         openReading(STATE.activeExhibit.id);
         return;
+      }
+      if(STATE.mode==='MINI_WALKING' && STATE.nearbyExhibit){
+        e.preventDefault();startWallLift(STATE.nearbyExhibit);return;
       }
       if (STATE.mode === 'MINI_WALKING' && STATE.focusedObject) {
         e.preventDefault();
@@ -1352,7 +1381,7 @@
       if (towardDesk) {
         STATE.mountIntentTimer += dt;
         STATE.charVel.multiplyScalar(0.86); // Graceful deceleration before leap
-        if (STATE.mountIntentTimer >= 0.18) {
+        if (STATE.mountIntentTimer >= 0.28) {
           startAutoMount();
           return;
         }
@@ -1360,32 +1389,11 @@
         STATE.mountIntentTimer = Math.max(0, STATE.mountIntentTimer - dt * 2.5);
       }
 
-      // 4. Evaluate Wall Lift intent (configured exhibits ONLY + sustained forward intent toward wall)
-      let matchedExhibit = null;
-      for (const ex of WALL_EXHIBITS) {
-        const dist = Math.hypot(STATE.charPos.x - ex.triggerCenter.x, STATE.charPos.z - ex.triggerCenter.z);
-        const dot = moveDir.dot(ex.wallDir);
-        if (dist <= ex.triggerRadius && dot > 0.58) {
-          matchedExhibit = ex;
-          break;
-        }
-      }
-      if (matchedExhibit) {
-        if (STATE.liftIntentExhibit !== matchedExhibit) {
-          STATE.liftIntentExhibit = matchedExhibit;
-          STATE.liftIntentTimer = 0;
-        }
-        STATE.liftIntentTimer += dt;
-        STATE.charVel.multiplyScalar(0.85);
-        if (STATE.liftIntentTimer >= 0.22) {
-          startWallLift(matchedExhibit);
-          return;
-        }
-      } else {
-        STATE.liftIntentTimer = Math.max(0, STATE.liftIntentTimer - dt * 2.5);
-        if (STATE.liftIntentTimer === 0) STATE.liftIntentExhibit = null;
-      }
     }
+    // Explicit E interaction: walking past a product never takes over the camera.
+    const near=STATE.surface==='floor'?WALL_EXHIBITS.find(ex=>
+      Math.hypot(STATE.charPos.x-ex.triggerCenter.x,STATE.charPos.z-ex.triggerCenter.z)<=ex.triggerRadius):null;
+    if(STATE.nearbyExhibit!==near){STATE.nearbyExhibit=near;updateUI();}
 
     // 5. Evaluate Object Focus (closest relevant object on current surface)
     let bestObj = null;
