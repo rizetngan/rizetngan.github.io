@@ -1392,3 +1392,10 @@ button {
 .atelier-shell.is-entered .card-meta{margin-bottom:10px;}
 .atelier-shell.is-entered .card-actions{margin-top:12px;}
 @media(max-width:768px){.entrance-hero h1{font-size:clamp(36px,9vw,49px);}.hero-kicker{margin-bottom:12px;}.hero-sub{margin-bottom:13px;}.entrance-hero::before{background:linear-gradient(0deg,rgba(239,235,228,.91),rgba(239,235,228,.43) 60%,transparent);}}
+
+/* E2: preserve a legible editorial navigation against the textured scene. */
+.atelier-shell.is-entered .main-nav{padding:6px 15px;border-radius:3px;background:rgba(242,238,228,.83);backdrop-filter:blur(12px);}
+.atelier-shell.is-mini .zone-name{display:none;}
+.atelier-shell.is-mini .context-prompt{border-radius:3px;box-shadow:0 3px 14px rgba(43,39,32,.09);}
+.atelier-shell.is-mini .bottom-right{background:rgba(242,238,228,.84);}
+@media(max-width:768px){.atelier-shell.is-entered .main-nav{padding:0;background:transparent;backdrop-filter:none;}}
