@@ -47,6 +47,8 @@
       kicker: 'INDEPENDENT SOFTWARE · CROSS-PLATFORM',
       title: 'Actape',
       lead: '把重复的鼠标与键盘操作，变成可录制、可编辑、可复用的工作流程。',
+      image: 'assets/actape-windows-preview.png',
+      imageAlt: 'Actape Windows 原生界面示意（来自项目 README）',
       plateTitle: 'ACTAPE',
       plateSub: 'RECORD · EDIT · REPLAY — MACOS & WINDOWS',
       plateClass: 'dark',
@@ -69,6 +71,8 @@
       kicker: 'COMMUNITY PORT · CROSS-DEVICE EXPERIENCE',
       title: 'Snug for Windows',
       lead: '探索让 Windows 电脑在手机竖屏上拥有更自然远程操作体验的社区移植项目。',
+      image: 'assets/snug-phone-running.png',
+      imageAlt: 'Snug for Windows 实际虚拟屏 App 资源库（来自项目 README）',
       plateTitle: 'SNUG / WIN',
       plateSub: 'PORTRAIT REMOTE WORKSPACE · COMMUNITY PORT',
       plateClass: '',
@@ -758,10 +762,11 @@
       <div class="reading-kicker">${data.kicker}</div>
       <h2 id="readingTitle">${data.title}</h2>
       <p class="reading-lead">${data.lead}</p>
+      ${data.image ? `<figure class="product-image"><img src="${data.image}" alt="${data.imageAlt}"><figcaption>${data.imageAlt}</figcaption></figure>` : `
       <div class="reading-plate ${data.plateClass}">
         <strong>${data.plateTitle}</strong>
         <small>${data.plateSub}</small>
-      </div>
+      </div>`}
       <h3>CONTEXT & CRAFT</h3>
       ${data.paragraphs.map(p => `<p>${p}</p>`).join('')}
       <h3>HIGHLIGHTS</h3>
@@ -1550,6 +1555,7 @@
       cameraPos: STATE.camPos.toArray(),
       orbitYaw: STATE.orbitYaw, orbitPitch: STATE.orbitPitch, orbitDist: STATE.orbitDist,
       mouseCaptured: STATE.mouseCaptured, lockUnavailable: STATE.lockUnavailable,
+      assetStatus: world.getAssetStatus(),
       activeExhibit: STATE.activeExhibit ? STATE.activeExhibit.id : null,
       focusedObject: STATE.focusedObject ? STATE.focusedObject.id : null
     }),
