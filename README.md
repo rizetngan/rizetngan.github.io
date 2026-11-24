@@ -54,3 +54,7 @@ The V6.1 update refines the model-gallery visual system, strengthens the miniatu
 Mini keyboard/mouse: `F` mode, WASD move, **left/right mouse drag** to orbit, **wheel** to zoom, `R` reset view, `E` interact, `Esc` back. Guided mouse wheel still advances the six chapters. Neither mode depends on pointer lock.
 
 This release still uses the uploaded WebGL implementation and procedural product presentation art. Replacing mock art with verified product screenshots and advancing detailed 3D asset modeling are intentional follow-up improvements, not claims of completed photorealistic art.
+
+## V7 — Editorial Maquette (development branch)
+
+This branch contains the immersive Mini control pass, locally vendored Three.js, original project imagery, and first editorial material/prop iteration. See [QA_REPORT_V7.md](QA_REPORT_V7.md) for the tested revision, actual screenshots and remaining release gates. V7 is not yet approved for production.
