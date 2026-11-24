@@ -494,7 +494,7 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.97;
+    renderer.toneMappingExposure = 1.12;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xE8E5DA);
@@ -504,10 +504,10 @@
     const textures = createTextures();
 
     // Lighting — Soft natural architectural daylight + warm bench lamp
-    const hemi = new THREE.HemisphereLight(0xF4F5EF, 0x77796D, 0.78);
+    const hemi = new THREE.HemisphereLight(0xF4F5EF, 0x77796D, 0.68);
     scene.add(hemi);
 
-    const sun = new THREE.DirectionalLight(0xFFF0D7, 1.08);
+    const sun = new THREE.DirectionalLight(0xFFF0D7, 1.42);
     sun.position.set(-12, 15, 8);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -542,7 +542,7 @@
       about:    { pos: new THREE.Vector3(5.0, 1.3, -1.2), radius: 4.4, value: 0.30, minValue: 0.22, items: [] }
     };
 
-    const sketchColor = new THREE.Color(0xE7E4D9);
+    const sketchColor = new THREE.Color(0xE7E4D9).convertSRGBToLinear();
     const interactables = [];
     const cameraColliders = [];
 
@@ -673,6 +673,15 @@
       {pos:[0,0,7.45],cameraBlocker:true,sketchEdges:false});
     addArchMesh(archGroup,archGeometry(4.5,1.78,.065,.022),
       {color:0xE3CBA9,roughness:.84},null,{pos:[0,0,8.035],sketchEdges:false});
+    // A precise ink contour across the curved front face reinforces the illustrated
+    // architectural character without turning every mesh into a wireframe.
+    const archStroke=new THREE.LineBasicMaterial({color:0x654A3C,transparent:true,opacity:.32});
+    [2.27,2.61].forEach(radius=>{
+      const points=[new THREE.Vector3(-radius,.04,8.075),new THREE.Vector3(-radius,1.78,8.075)];
+      for(let i=0;i<=48;i++){const angle=Math.PI*(1-i/48);points.push(new THREE.Vector3(Math.cos(angle)*radius,1.78+Math.sin(angle)*radius,8.075));}
+      points.push(new THREE.Vector3(radius,.04,8.075));
+      archGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),archStroke));
+    });
     // Offset low wing walls read as a cutaway maquette; no repetitive full-height ribs.
     addArchMesh(archGroup,roundedSlab(.43,2.30,1.12,.12),
       {color:0x87978A,map:textures.plaster,roughness:.95},null,
@@ -1003,7 +1012,7 @@
         const r = THREE.MathUtils.clamp(zone.value, 0, 1);
         zone.items.forEach((item) => {
           // Preserve intentional material/color hierarchy even in unexplored zones.
-          item.mat.color.copy(sketchColor).lerp(item.baseColor, 0.83 + 0.17 * r);
+          item.mat.color.copy(sketchColor).lerp(item.baseColor, 0.91 + 0.09 * r);
           if (item.edges) {
             item.edges.material.opacity = THREE.MathUtils.lerp(0.40, item.keepLine * 0.75, r);
           }
@@ -1011,6 +1020,21 @@
       });
     }
 
+    // r128 treats hex colors as linear values. Our editorial palette is authored
+    // in sRGB; convert exactly once (including shared materials) before ACES.
+    // Texture encoding is already sRGB, so this does not double-convert images.
+    const normalizedMaterials = new Set();
+    scene.traverse(obj => {
+      const materials = Array.isArray(obj.material) ? obj.material : obj.material ? [obj.material] : [];
+      for (const m of materials) {
+        if (normalizedMaterials.has(m)) continue;
+        normalizedMaterials.add(m);
+        if(m.color)m.color.convertSRGBToLinear();
+      }
+    });
+    for(const zone of Object.values(zoneRevealState)) for(const item of zone.items) item.baseColor.copy(item.mat.color);
+    scene.background.convertSRGBToLinear();
+    scene.fog.color.convertSRGBToLinear();
     scene.updateMatrixWorld(true);
     return {
       renderer,
