@@ -165,8 +165,8 @@
       title: '入口前厅',
       zoneLabel: 'ENTRANCE',
       desc: '柔和自然光落入暖石前厅。向下滚动或点击空间，沿建筑走廊走入工坊。',
-      camPos: new THREE.Vector3(13.3, 10.2, 22.3),
-      camLook: new THREE.Vector3(-2.75, 0.65, 4.2),
+      camPos: new THREE.Vector3(15.2, 11.0, 23.0),
+      camLook: new THREE.Vector3(-2.8, 1.2, 3.6),
       spawnPos: new THREE.Vector3(0, 0, 8.6),
       contentId: 'about',
       revealZone: 'entrance'
@@ -884,6 +884,7 @@
     // Lectern & Plinth small obstacles
     const pillars = [
       { x: -4.65, z: -0.6, r: 0.56 },
+      { x: 3.0, z: 1.3, r: 0.32 },
       { x: -1.95, z: -1.67, r: 0.42 },
       { x: 5.15, z: -1.2, r: 0.72 },
       { x: 5.45, z: 1.35, r: 0.52 }
@@ -1479,8 +1480,8 @@
       const py = prefersReducedMotion || mode === 'READING' ? 0 : -STATE.pointerParallax.y * 0.12;
       const portrait = world.camera.aspect < .85;
       if (ch.id === 'entrance' && portrait) {
-        STATE.desiredCamPos.set(17.2, 13.8, 26.8);
-        STATE.desiredCamLook.set(0, 0.4, 3.7);
+        STATE.desiredCamPos.set(18.2, 14.5, 27.8);
+        STATE.desiredCamLook.set(0, 1.3, 3.0);
       } else {
         STATE.desiredCamPos.set(ch.camPos.x + px, ch.camPos.y + py, ch.camPos.z);
         STATE.desiredCamLook.copy(ch.camLook);

@@ -354,6 +354,29 @@
       this.animState = 'idle'; // idle | walk | turn | mount | float | land
     }
 
+    // Bind the exported Blender skin to the already tested gameplay motion.
+    // Keep the original figure as a local fallback if any required bone is absent.
+    bindSkin(gltf) {
+      const model=gltf.scene, names=['LegL','LegR','ArmL','ArmR'];
+      const joints=names.map(n=>model.getObjectByName(n));
+      let count=0;model.traverse(o=>{if(o.isSkinnedMesh){count++;o.frustumCulled=false;}if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+      if(!count || joints.some(o=>!o||!o.isBone))return false;
+      this.skinJoints=joints.map(o=>({bone:o,rest:o.quaternion.clone()}));
+      for(const child of this.rig.children)child.visible=false;
+      this.rig.add(model);this.skinModel=model;
+      this.poseRotation=new THREE.Quaternion();this.poseEuler=new THREE.Euler();
+      this.syncSkinPose();return true;
+    }
+    syncSkinPose() {
+      if(!this.skinJoints)return;
+      const drivers=[this.leftLeg,this.rightLeg,this.leftArm,this.rightArm];
+      this.skinJoints.forEach(({bone,rest},i)=>{
+        const r=drivers[i].rotation;
+        this.poseEuler.set(r.x,0,i<2?0:r.z,'XYZ');
+        this.poseRotation.setFromEuler(this.poseEuler);
+        bone.quaternion.copy(rest).premultiply(this.poseRotation);
+      });
+    }
     setAnim(state) {
       if (state === 'land' && this.animState !== 'land') {
         this.landTimer = 0.28;
@@ -381,6 +404,7 @@
         this.rightLeg.rotation.x = 0;
         this.leftArm.rotation.x = 0;
         this.rightArm.rotation.x = 0;
+        this.syncSkinPose();
         return;
       }
 
@@ -434,6 +458,7 @@
         this.rig.rotation.x *= 0.85;
         this.rig.rotation.z = THREE.MathUtils.lerp(this.rig.rotation.z, THREE.MathUtils.clamp(-turnRate * 0.1, -0.08, 0.08), Math.min(1, dt * 8));
       }
+      this.syncSkinPose();
     }
   }
 
@@ -461,7 +486,7 @@
 
     const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 320);
     const textures = createTextures();
-    const assetReady = { plaster: false, walnut: false, chair: false };
+    const assetReady = { plaster: false, walnut: false, chair: false, roof: false, mini: false };
     function replaceTexturePixels(target,url,key) {
       const img=new Image();
       img.onload=()=>{
@@ -588,14 +613,14 @@
     // Main honed limestone floor (walkable floor)
     // A real *object* instead of an infinite CGI floor: the studio sits on a
     // carefully finished architectural model plinth with a visible cut edge.
-    const plinthMat = new THREE.MeshStandardMaterial({ color: 0xB9A88D, roughness: 0.92 });
-    const plinth = new THREE.Mesh(roundedSlab(14.2,19.3,.34,.18), plinthMat);
-    plinth.position.set(0, -0.23, 2.4);
+    const plinthMat = new THREE.MeshStandardMaterial({ color: 0x8F6E52, roughness: 0.92 });
+    const plinth = new THREE.Mesh(roundedSlab(14.2,18.1,.34,.18), plinthMat);
+    plinth.position.set(0, -0.23, 1.8);
     plinth.castShadow = true;
     plinth.receiveShadow = true;
     archGroup.add(plinth);
-    const plinthFoot = new THREE.Mesh(roundedSlab(14.4,19.5,.045,.19), new THREE.MeshStandardMaterial({ color: 0x777064, roughness: 0.74 }));
-    plinthFoot.position.set(0, -0.43, 2.4);
+    const plinthFoot = new THREE.Mesh(roundedSlab(14.4,18.3,.045,.19), new THREE.MeshStandardMaterial({ color: 0x777064, roughness: 0.74 }));
+    plinthFoot.position.set(0, -0.43, 1.8);
     archGroup.add(plinthFoot);
     const presentationGround = new THREE.Mesh(new THREE.PlaneGeometry(650, 650), new THREE.MeshStandardMaterial({ color: 0xD8D5C9, roughness: 1.0 }));
     presentationGround.rotation.x = -Math.PI / 2;
@@ -603,11 +628,11 @@
     presentationGround.receiveShadow = true;
     archGroup.add(presentationGround);
     // Fine brass shadow gap gives a jewelry-like edge without game decoration.
-    const inlay = new THREE.Mesh(roundedSlab(14.03,19.10,.018,.15), new THREE.MeshStandardMaterial({ color: 0xA58D73, metalness: 0.33, roughness: 0.7 }));
-    inlay.position.set(0, -0.043, 2.4);
+    const inlay = new THREE.Mesh(roundedSlab(14.03,17.90,.018,.15), new THREE.MeshStandardMaterial({ color: 0xA58D73, metalness: 0.33, roughness: 0.7 }));
+    inlay.position.set(0, -0.043, 1.8);
     archGroup.add(inlay);
 
-    const floorGeo = new THREE.PlaneGeometry(14.0, 19.05);
+    const floorGeo = new THREE.PlaneGeometry(14.0, 17.85);
     const floorMat = new THREE.MeshStandardMaterial({
       map: textures.limestone,
       color: 0xF4EDE0,
@@ -616,7 +641,7 @@
     });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
     floorMesh.rotation.x = -Math.PI / 2;
-    floorMesh.position.set(0, 0, 2.4);
+    floorMesh.position.set(0, 0, 1.8);
     floorMesh.receiveShadow = true;
     floorMesh.name = 'StudioFloor';
     floorMat.bumpMap=textures.limestone;floorMat.bumpScale=.008;
@@ -625,8 +650,8 @@
     // Subtle inlaid architectural floor drafting lines (corridor spine -> bench -> gallery)
     const gridMat = new THREE.LineBasicMaterial({ color: PALETTE.graphite, transparent: true, opacity: 0.22 });
     const spinePoints = [
-      new THREE.Vector3(-1.85, 0.006, 12.2), new THREE.Vector3(-1.85, 0.006, 2.3),
-      new THREE.Vector3(1.85, 0.006, 12.2), new THREE.Vector3(1.85, 0.006, 2.3),
+      new THREE.Vector3(-1.85, 0.006, 10.64), new THREE.Vector3(-1.85, 0.006, 2.3),
+      new THREE.Vector3(1.85, 0.006, 10.64), new THREE.Vector3(1.85, 0.006, 2.3),
       new THREE.Vector3(-5.8, 0.006, -3.1), new THREE.Vector3(5.8, 0.006, -3.1)
     ];
     const spineGeo = new THREE.BufferGeometry().setFromPoints(spinePoints);
@@ -760,9 +785,26 @@
     // Woven runner, visually connecting the threshold to the bench; no floor height change.
     addArchMesh(archGroup,roundedSlab(2.08,4.3,.009,.12),{map:textures.linen,color:0xD9D5BE,roughness:1},null,
       {pos:[0,.006,5.2],castShadow:false,sketchEdges:false});
-    // One open canopy with thin rafters, allowing the model to be read from above.
-    [-2.9,-1.85,-.8,.25,1.3].forEach(z=>addArchMesh(archGroup,new THREE.BoxGeometry(10.5,.11,.13),
+    // A separately authored Blender roof joins the rear wall and makes the
+    // maquette a coherent building. Leave the viewing side and skylight open.
+    const canopyFallback=new THREE.Group();archGroup.add(canopyFallback);
+    [-2.9,-1.85,-.8,.25,1.3].forEach(z=>addArchMesh(canopyFallback,new THREE.BoxGeometry(10.5,.11,.13),
       {color:0xB8AA90,roughness:.9},null,{pos:[0,4.65,z],castShadow:false,sketchEdges:false}));
+    if(THREE.GLTFLoader) new THREE.GLTFLoader().load('assets/e2/atelier-roof.glb',gltf=>{
+      const model=gltf.scene;
+      model.traverse(o=>{
+        if(!o.isMesh)return;
+        o.castShadow=true;o.receiveShadow=true;
+        if(/Roof_column|Roof.column|Gable|Ridge|Cutaway_roof_edge/i.test(o.name)){
+          cameraColliders.push(o);
+          const lines=new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry,32),
+            new THREE.LineBasicMaterial({color:0x4A4034,transparent:true,opacity:.28}));
+          o.add(lines);
+        }
+      });
+      archGroup.add(model);model.updateMatrixWorld(true);
+      canopyFallback.visible=false;assetReady.roof=true;
+    },undefined,()=>{assetReady.roof=false;});
 
     // ==================== 2. PROTOTYPE BENCH (LAB — VISUAL & EMOTIONAL CORE) ====================
     const benchGroup = new THREE.Group();
@@ -1128,6 +1170,9 @@
     const miniCharacter = new MiniCharacter();
     scene.add(miniCharacter.group);
     scene.add(miniCharacter.contactShadow);
+    if(THREE.GLTFLoader) new THREE.GLTFLoader().load('assets/e2/mini-tailored.glb',gltf=>{
+      assetReady.mini=miniCharacter.bindSkin(gltf);
+    },undefined,()=>{assetReady.mini=false;});
 
     // ==================== PRECISION SKETCH -> MATERIAL REALITY UPDATER ====================
     function updateSketchReveal(focusWorldPos, activeZoneKey, dt) {
