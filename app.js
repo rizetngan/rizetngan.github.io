@@ -165,8 +165,8 @@
       title: '入口前厅',
       zoneLabel: 'ENTRANCE',
       desc: '柔和自然光落入暖石前厅。向下滚动或点击空间，沿建筑走廊走入工坊。',
-      camPos: new THREE.Vector3(9.3, 7.7, 17.8),
-      camLook: new THREE.Vector3(-1.9, 0.75, 3.6),
+      camPos: new THREE.Vector3(13.3, 10.2, 22.3),
+      camLook: new THREE.Vector3(-2.75, 0.65, 4.2),
       spawnPos: new THREE.Vector3(0, 0, 8.6),
       contentId: 'about',
       revealZone: 'entrance'
@@ -565,6 +565,7 @@
     world.miniCharacter.setAnim('idle');
 
     STATE.mode = 'MINI_WALKING';
+    STATE.lockUnavailable = isTouchDevice || typeof canvasEl.requestPointerLock !== 'function';
     updateUI();
     captureMiniMouse();
   }
@@ -1463,12 +1464,21 @@
       const ch = CHAPTERS[STATE.chapterIdx];
       const px = prefersReducedMotion || mode === 'READING' ? 0 : STATE.pointerParallax.x * 0.20;
       const py = prefersReducedMotion || mode === 'READING' ? 0 : -STATE.pointerParallax.y * 0.12;
-      STATE.desiredCamPos.set(ch.camPos.x + px, ch.camPos.y + py, ch.camPos.z);
-      STATE.desiredCamLook.copy(ch.camLook);
+      const portrait = world.camera.aspect < .85;
+      if (ch.id === 'entrance' && portrait) {
+        STATE.desiredCamPos.set(17.2, 13.8, 26.8);
+        STATE.desiredCamLook.set(0, 0.4, 3.7);
+      } else {
+        STATE.desiredCamPos.set(ch.camPos.x + px, ch.camPos.y + py, ch.camPos.z);
+        STATE.desiredCamLook.copy(ch.camLook);
+      }
+      const desiredFov=portrait && ch.id==='entrance'?54:42;
+      if(world.camera.fov!==desiredFov){world.camera.fov=desiredFov;world.camera.updateProjectionMatrix();}
     } else if ((mode === 'OBJECT_PREVIEW' || mode === 'AUTO_TRAVERSAL' && STATE.traversal?.type === 'lift_up') && STATE.activeExhibit) {
       STATE.desiredCamPos.copy(STATE.activeExhibit.camPos);
       STATE.desiredCamLook.copy(STATE.activeExhibit.camLook);
     } else {
+      if(world.camera.fov!==42){world.camera.fov=42;world.camera.updateProjectionMatrix();}
       // User controls the orbit even after climbing. No fixed 35–50 degree overhead view.
       // Auto Focus never overrides yaw/pitch; it influences the look-at target only.
       const desk = STATE.surface === 'desk' || STATE.traversal?.type === 'mount';
