@@ -279,7 +279,7 @@
       this.group = new THREE.Group();
       this.group.name = 'MiniCharacter';
       this.group.visible = false;
-      this.group.scale.setScalar(0.76); // miniature: ~40% of desk height
+      this.group.scale.setScalar(0.70); // miniature: ~40% of desk height
 
       const matGraphite = new THREE.MeshStandardMaterial({ color: 0x34473E, roughness: 0.89, metalness: 0.0 });
       const matIvory = new THREE.MeshStandardMaterial({ color: 0xD4B899, roughness: 0.92, metalness: 0.0 });
@@ -292,96 +292,47 @@
       this.rig = new THREE.Group();
       this.group.add(this.rig);
 
-      // Legs
-      const legGeo = new THREE.CylinderGeometry(0.036, 0.028, 0.21, 12);
-      this.leftLeg = new THREE.Group();
-      this.leftLeg.position.set(-0.048, 0.21, 0);
-      const leftLegMesh = new THREE.Mesh(legGeo, matTrousers);
-      leftLegMesh.position.y = -0.105;
-      leftLegMesh.castShadow = true;
-      this.leftLeg.add(leftLegMesh);
-      this.rig.add(this.leftLeg);
+      // Adult miniature silhouette: 0.65 tall before scale, 6.7 head ratio,
+      // longer trousers, flattened torso, visible hands and natural collar.
+      const shirtMat=new THREE.MeshStandardMaterial({color:0xECE0C6,roughness:.96});
+      function sculpt(parent,geometry,material,position,scale){
+        const m=new THREE.Mesh(geometry,material);m.position.set(...position);
+        if(scale)m.scale.set(...scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
+      }
+      const legGeo=new THREE.LatheGeometry([[.023,0],[.027,.04],[.033,.16],[.034,.265]].map(([x,y])=>new THREE.Vector2(x,y-.265)),16);
+      this.leftLeg=new THREE.Group();this.rightLeg=new THREE.Group();
+      for(const [leg,x] of [[this.leftLeg,-.040],[this.rightLeg,.040]]){
+        leg.position.set(x,.292,0);this.rig.add(leg);
+        sculpt(leg,legGeo,matTrousers,[0,0,0],[1,1,.88]);
+        sculpt(leg,roundedSlab(.055,.094,.031,.018),matShoes,[0,-.276,.018]);
+      }
+      this.torso=sculpt(this.rig,new THREE.LatheGeometry([[.068,0],[.074,.02],[.069,.10],[.078,.19],[.056,.23],[.030,.24]].map(([x,y])=>new THREE.Vector2(x,y)),24),
+        matGraphite,[0,.279,0],[1,1,.72]);
+      sculpt(this.rig,new THREE.CylinderGeometry(.027,.034,.036,16),matIvory,[0,.525,0]);
+      sculpt(this.rig,new THREE.BoxGeometry(.052,.135,.012),shirtMat,[0,.438,.050]);
+      for(const x of [-.027,.027]){
+        const lapel=sculpt(this.rig,new THREE.BoxGeometry(.025,.072,.014),matGraphite,[x,.473,.058]);
+        lapel.rotation.z=x<0?-.29:.29;
+        sculpt(this.rig,new THREE.BoxGeometry(.033,.042,.009),matGraphite,[x*1.6,.366,.057]);
+      }
+      sculpt(this.rig,new THREE.BoxGeometry(.015,.045,.011),matTerra,[-.044,.438,.061]);
+      this.leftArm=new THREE.Group();this.rightArm=new THREE.Group();
+      for(const [arm,x] of [[this.leftArm,-.084],[this.rightArm,.084]]){
+        arm.position.set(x,.492,0);arm.rotation.z=x<0?-.065:.065;this.rig.add(arm);
+        sculpt(arm,new THREE.CylinderGeometry(.023,.017,.175,12),matGraphite,[0,-.084,0],[1,1,.86]);
+        sculpt(arm,new THREE.SphereGeometry(.018,12,10),matIvory,[0,-.181,.003],[.82,1.16,.74]);
+      }
+      this.head=sculpt(this.rig,new THREE.SphereGeometry(.045,22,18),matIvory,[0,.581,0],[.88,1.12,.91]);
+      // Layered swept hair and ears; restrained facial detail only visible close up.
+      sculpt(this.rig,new THREE.SphereGeometry(.046,20,14,0,Math.PI*2,0,Math.PI*.62),matHair,[0,.599,-.006],[.96,1.03,.99]);
+      for(let i=0;i<4;i++){
+        const strand=sculpt(this.rig,new THREE.SphereGeometry(.019,14,10),matHair,[-.025+i*.016,.624-i*.002,.014],[1.10,.65,1.35]);
+        strand.rotation.z=-.40;
+      }
+      for(const x of [-.041,.041])sculpt(this.rig,new THREE.SphereGeometry(.009,10,8),matIvory,[x,.580,0],[.65,1.2,1]);
+      sculpt(this.rig,new THREE.SphereGeometry(.008,10,8),matIvory,[0,.577,.039],[.70,1,.72]);
+      for(const x of [-.016,.016])sculpt(this.rig,new THREE.SphereGeometry(.0038,8,6),matHair,[x,.589,.037],[.7,1,.5]);
 
-      this.rightLeg = new THREE.Group();
-      this.rightLeg.position.set(0.048, 0.21, 0);
-      const rightLegMesh = new THREE.Mesh(legGeo, matTrousers);
-      rightLegMesh.position.y = -0.105;
-      rightLegMesh.castShadow = true;
-      this.rightLeg.add(rightLegMesh);
-      this.rig.add(this.rightLeg);
-
-      // Sculpted tapered architectural torso
-      const torsoGeo = new THREE.LatheGeometry([[.076,0],[.095,.025],[.090,.13],[.083,.22],[.065,.27]].map(([x,y])=>new THREE.Vector2(x,y-.135)),24);
-      this.torso = new THREE.Mesh(torsoGeo, matGraphite);
-      this.torso.position.y = 0.325;
-      this.torso.castShadow = true;
-      this.torso.receiveShadow = true;
-      this.rig.add(this.torso);
-
-      // Crisp ivory collar ring
-      const collarGeo = new THREE.CylinderGeometry(0.058, 0.075, 0.036, 16);
-      const collar = new THREE.Mesh(collarGeo, matIvory);
-      collar.position.y = 0.456;
-      collar.castShadow = true;
-      this.rig.add(collar);
-
-      // Minimal terracotta lapel / scarf accent (signature brand identity)
-      const lapelGeo = new THREE.BoxGeometry(0.028, 0.082, 0.016);
-      const lapel = new THREE.Mesh(lapelGeo, matTerra);
-      lapel.position.set(-0.032, 0.395, 0.076);
-      lapel.rotation.z = 0.14;
-      this.rig.add(lapel);
-
-      // Arms
-      const armGeo = new THREE.CylinderGeometry(0.024, 0.02, 0.19, 10);
-      this.leftArm = new THREE.Group();
-      this.leftArm.position.set(-0.095, 0.425, 0);
-      const leftArmMesh = new THREE.Mesh(armGeo, matGraphite);
-      leftArmMesh.position.y = -0.092;
-      leftArmMesh.castShadow = true;
-      this.leftArm.add(leftArmMesh);
-      this.rig.add(this.leftArm);
-
-      this.rightArm = new THREE.Group();
-      this.rightArm.position.set(0.095, 0.425, 0);
-      const rightArmMesh = new THREE.Mesh(armGeo, matGraphite);
-      rightArmMesh.position.y = -0.092;
-      rightArmMesh.castShadow = true;
-      this.rightArm.add(rightArmMesh);
-      this.rig.add(this.rightArm);
-
-      // Two tiny sculpted shoes anchor the figurine to the model world.
-      const shoeGeo = new THREE.BoxGeometry(0.07, 0.028, 0.12);
-      [this.leftLeg, this.rightLeg].forEach((leg) => {
-        const shoe = new THREE.Mesh(shoeGeo, matShoes);
-        shoe.position.set(0, -0.194, 0.018);
-        shoe.castShadow = true;
-        leg.add(shoe);
-      });
-
-      // Smooth ovoid sculptural head (not big-head cartoon: ~1:6.5 architectural proportion)
-      const headGeo = new THREE.SphereGeometry(0.068, 18, 16);
-      this.head = new THREE.Mesh(headGeo, matIvory);
-      this.head.scale.set(0.92, 1.08, 0.96);
-      this.head.position.y = 0.548;
-      this.head.castShadow = true;
-      this.rig.add(this.head);
-
-      // Matte sculptural hair cap; no visor, eyes or cartoon facial markings.
-      const hair = new THREE.Mesh(new THREE.SphereGeometry(0.069, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.52), matHair);
-      hair.scale.set(0.94, 1.02, 0.98);
-      hair.position.set(0, 0.559, -0.004);
-      hair.castShadow = true;
-      this.rig.add(hair);
-      const coatSeam = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.18, 0.006), matGraphite);
-      coatSeam.position.set(0, 0.315, 0.094);
-      this.rig.add(coatSeam);
-
-      const pocketGeo=new THREE.BoxGeometry(.045,.047,.012);
-      [-.045,.045].forEach(x=>{
-        const pocket=new THREE.Mesh(pocketGeo,matGraphite);
-        pocket.position.set(x,.335,.086);this.rig.add(pocket);
-      });
       // Projected soft contact shadow disc
       const shadowTex = makeCanvasTexture(128, 128, (ctx, w, h) => {
         const g = ctx.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w / 2);
@@ -442,13 +393,13 @@
       }
 
       if (this.animState === 'walk') {
-        const freq = 9.5;
-        const swing = Math.sin(t * freq) * 0.56 * Math.min(1, speedNorm + 0.2);
+        const freq = 8.0;
+        const swing = Math.sin(t * freq) * 0.44 * Math.min(1, speedNorm + 0.2);
         this.leftLeg.rotation.x = swing;
         this.rightLeg.rotation.x = -swing;
         this.leftArm.rotation.x = -swing * 0.72;
         this.rightArm.rotation.x = swing * 0.72;
-        this.rig.position.y = Math.abs(Math.cos(t * freq)) * 0.022 * speedNorm;
+        this.rig.position.y = Math.abs(Math.cos(t * freq)) * 0.014 * speedNorm;
         this.rig.rotation.x = 0.06 * speedNorm;
         this.rig.rotation.z = THREE.MathUtils.clamp(-turnRate * 0.18, -0.14, 0.14);
       } else if (this.animState === 'mount') {
@@ -515,8 +466,13 @@
       const img=new Image();
       img.onload=()=>{
         const canvas=target.image, ctx=canvas.getContext('2d');
+        // Remap photographic texture toward the illustrated material swatches.
         ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle=key==='plaster'?'#e8e1d2':'#997b60';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.globalAlpha=key==='plaster'?.28:.50;
         ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        ctx.globalAlpha=1;
         target.needsUpdate=true; assetReady[key]=true;
       };
       img.src=url;
@@ -663,6 +619,7 @@
     floorMesh.position.set(0, 0, 2.4);
     floorMesh.receiveShadow = true;
     floorMesh.name = 'StudioFloor';
+    floorMat.bumpMap=textures.limestone;floorMat.bumpScale=.008;
     archGroup.add(floorMesh);
 
     // Subtle inlaid architectural floor drafting lines (corridor spine -> bench -> gallery)
@@ -699,6 +656,30 @@
       {pos:[-6.39,.94,2.575],sketchEdges:false});
     const glazingGuard=new THREE.Mesh(new THREE.BoxGeometry(.06,3.35,4.5),new THREE.MeshBasicMaterial({visible:false}));
     glazingGuard.position.set(-6.6,2.575,2.575);archGroup.add(glazingGuard);cameraColliders.push(glazingGuard);
+    // Low built-in storage beneath the west window. Shallow enough to preserve
+    // the generous circulation lane. Drawer and frame details use quiet ink lines.
+    const cabinet=new THREE.Group();cabinet.position.set(-5.98,0,2.58);archGroup.add(cabinet);
+    addArchMesh(cabinet,new THREE.BoxGeometry(.64,.74,4.1),{color:0x63766B,roughness:.9},null,{pos:[0,.40,0],sketchEdges:false});
+    addArchMesh(cabinet,roundedSlab(.75,4.18,.055,.025),{map:textures.walnut,color:0xE4D1B5,roughness:.85},null,{pos:[0,.80,0],sketchEdges:false});
+    for(let i=0;i<5;i++){
+      const z=-1.64+i*.82;
+      for(let row=0;row<2;row++){
+        addArchMesh(cabinet,new THREE.BoxGeometry(.022,.30,.77),{color:0x708276,roughness:.94},null,{pos:[.336,.25+row*.34,z],sketchEdges:false});
+        addArchMesh(cabinet,new THREE.BoxGeometry(.045,.025,.17),{color:0xAD976D,roughness:.76},null,{pos:[.366,.28+row*.34,z],sketchEdges:false});
+      }
+    }
+    // A sculpted ceramic plant and two closed notebooks are functional sill objects.
+    const pot=new THREE.Group();pot.position.set(-5.96,.83,4.02);cabinet.parent.add(pot);
+    addArchMesh(pot,new THREE.CylinderGeometry(.14,.10,.24,20),{color:0xAB634B,roughness:.95},null,{pos:[0,.12,0],sketchEdges:false});
+    addArchMesh(pot,new THREE.CylinderGeometry(.126,.126,.012,20),{color:0x544333,roughness:1},null,{pos:[0,.239,0],sketchEdges:false});
+    for(let i=0;i<9;i++){
+      const angle=i*2.399, len=.21+(i%3)*.075;
+      const tip=new THREE.Vector3(Math.cos(angle)*.18,.29+len,Math.sin(angle)*.18);
+      const stemCurve=new THREE.LineCurve3(new THREE.Vector3(0,.24,0),tip);
+      addArchMesh(pot,new THREE.TubeGeometry(stemCurve,5,.005,5,false),{color:0x5C7357,roughness:.95},null,{sketchEdges:false});
+      const leaf=addArchMesh(pot,new THREE.SphereGeometry(1,12,8),{color:[0x647E5B,0x7D8C5A,0x4F6F56][i%3],roughness:.94},null,{pos:tip.toArray(),sketchEdges:false});
+      leaf.scale.set(.065,.018,.117);leaf.rotation.set(.3,angle,.35);
+    }
     // East Wall (x = +6.6)
     addArchMesh(archGroup, new THREE.BoxGeometry(0.35, 4.8, 6.5), { map: textures.plaster, color: 0xDED6C3 }, 'about', {
       pos: [6.6, 2.4, -3.25], castShadow: false, keepLine: 0.08, cameraBlocker: true
@@ -710,11 +691,25 @@
     addArchMesh(archGroup,roundedSlab(.40,5.5,.08,.06),
       {color:0xA58D72,roughness:.86},null,{pos:[6.6,1.22,2.75],sketchEdges:false});
 
-    // Decorative overhead ledge and timber beams, not a second navigable floor.
+    // Mezzanine reading loft: visible architecture only; ground level remains walkable.
     addArchMesh(archGroup,new THREE.BoxGeometry(4.4,.20,1.30),{map:textures.walnut,color:0xEAD5B5,roughness:.90},null,
       {pos:[-4.05,3.78,-4.58],cameraBlocker:true,sketchEdges:false});
     for(let i=0;i<5;i++)addArchMesh(archGroup,new THREE.BoxGeometry(.13,.17,1.46),{color:0x977C5E,roughness:.9},null,
       {pos:[-5.9+i*.94,3.59,-4.58],sketchEdges:false});
+    // Edge rail and a shallow upper library built into the solid rear wall.
+    const loftRail={color:0x3E5146,roughness:.83};
+    addArchMesh(archGroup,new THREE.BoxGeometry(4.4,.045,.055),loftRail,null,{pos:[-4.05,4.49,-3.91],sketchEdges:false});
+    for(let i=0;i<=8;i++)addArchMesh(archGroup,new THREE.BoxGeometry(.032,.64,.032),loftRail,null,{pos:[-6.23+i*.545,4.16,-3.91],sketchEdges:false});
+    // Attached structural fascia, not a floating decorative shelf.
+    addArchMesh(archGroup,new THREE.BoxGeometry(.12,3.58,.13),{color:0x77604A,roughness:.86},null,
+      {pos:[-6.12,1.79,-3.99],cameraBlocker:true,sketchEdges:false});
+    addArchMesh(archGroup,new THREE.BoxGeometry(3.93,.58,.24),{color:0x8D755A,roughness:.87},null,
+      {pos:[-4.05,4.17,-5.11],sketchEdges:false});
+    for(let i=0;i<14;i++){
+      const h=.23+((i*11)%5)*.048;
+      addArchMesh(archGroup,new THREE.BoxGeometry(.13,h,.18),{color:[0x667A6D,0xD2BA91,0xAD614A,0x547581][i%4],roughness:.94},null,
+        {pos:[-5.84+i*.27,3.95+h/2,-4.93],sketchEdges:false});
+    }
     // Rear exhibit wall is articulated as two painted clay bays in a quiet sage shell.
     // Front face stays behind the product plates and preserves their existing lift anchors.
     [-2.12,2.12].forEach((x,i)=>{
@@ -781,12 +776,29 @@
     // Smoked Walnut Desk Top (y = 0.96 to 1.02, walkable surface at y = 1.02!)
     const deskTopMesh = addArchMesh(benchGroup, roundedSlab(4.6,2.2,.09,.15), {
       map: textures.walnut,
-      color: 0xF1DDC2,
-      roughness: 0.79
+      color: 0xE6D4BA,
+      roughness: 0.83
     }, 'lab', {
       pos: [0, 0.975, 0], interactId: 'lab', interactZone: 'lab', keepLine: 0.12, cameraBlocker: true
     });
     deskTopMesh.name = 'DeskSurface';
+    deskTopMesh.material.bumpMap=textures.walnut;deskTopMesh.material.bumpScale=.006;
+    const joineryInk=new THREE.LineBasicMaterial({color:0x533D2D,transparent:true,opacity:.28});
+    const underside=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(4.32,.016,1.97),25),joineryInk);
+    underside.position.set(0,.93,0);benchGroup.add(underside);
+    // Contact occlusion under the workstation gives the floor a miniature-photo depth.
+    const aoTex=makeCanvasTexture(128,128,(ctx,w,h)=>{
+      const g=ctx.createRadialGradient(w/2,h/2,w*.12,w/2,h/2,w*.5);
+      g.addColorStop(0,'rgba(48,42,34,.27)');g.addColorStop(.63,'rgba(48,42,34,.12)');g.addColorStop(1,'rgba(48,42,34,0)');
+      ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    });
+    function contactAO(x,y,z,w,d,alpha){
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:aoTex,transparent:true,opacity:alpha,depthWrite:false}));
+      m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.renderOrder=1;benchGroup.add(m);
+    }
+    contactAO(0,.023,0,5.1,2.5,.68);
+    contactAO(-.15,1.021,-.42,.80,.44,.5);
+    contactAO(1.72,1.021,-.46,.46,.36,.5);
 
     // Thin shadow reveal and timber apron give the desk a crafted furniture profile.
     addArchMesh(benchGroup, roundedSlab(4.38,1.98,.065,.13),
@@ -809,7 +821,7 @@
 
     // A compact bent-plywood chair, tucked into the back of the bench.
     // The seat and curved back are custom lofted profiles, with exposed timber edges.
-    const chair=new THREE.Group();chair.position.set(-1.50,0,-1.36);benchGroup.add(chair);
+    const chair=new THREE.Group();chair.position.set(-1.95,0,-1.67);benchGroup.add(chair);
     const seat=addArchMesh(chair,roundedSlab(.48,.43,.045,.12),{color:0x986F49,roughness:.83},null,
       {pos:[0,.48,0],sketchEdges:false});
     seat.rotation.x=-.045;
@@ -910,6 +922,16 @@
     phoneFace.position.z = 0.012;
     phoneBody.add(phoneFace);
 
+    // Working materials: a layered paper notebook, page block and a compact
+    // pencil tray. Keep front half of tabletop free for Mini exploration.
+    const notebook=new THREE.Group();notebook.position.set(-1.94,1.022,.38);notebook.rotation.y=.18;benchGroup.add(notebook);
+    addArchMesh(notebook,roundedSlab(.28,.39,.036,.018),{color:0x526E7C,roughness:.94},null,{pos:[0,.018,0],sketchEdges:false});
+    addArchMesh(notebook,roundedSlab(.265,.365,.021,.01),{color:0xE9E2D2,roughness:.99},null,{pos:[.005,.025,0],sketchEdges:false});
+    for(let i=0;i<7;i++)addArchMesh(notebook,new THREE.BoxGeometry(.003,.002,.34),{color:0xB9A994,roughness:1},null,{pos:[.139,.014+i*.0025,0],sketchEdges:false});
+    const tray=new THREE.Group();tray.position.set(.68,1.023,-.56);benchGroup.add(tray);
+    addArchMesh(tray,roundedSlab(.42,.22,.028,.035),{color:0xBBA585,roughness:.9},null,{pos:[0,.014,0],sketchEdges:false});
+    for(let i=0;i<3;i++)addArchMesh(tray,new THREE.CylinderGeometry(.009,.009,.28,8),{color:[0xAD614A,0x667A6D,0x303A36][i],roughness:.9},null,
+      {pos:[0,.037,-.055+i*.047],rot:[0,0,Math.PI/2],sketchEdges:false});
     // Architectural Drafting Sketchpad (left side of desk)
     addArchMesh(benchGroup, new THREE.BoxGeometry(0.86, 0.014, 0.64), { map: textures.sketchpad, color: 0xFFFFFF, roughness: 0.92 }, 'lab', {
       pos: [-1.42, 1.028, 0.08], rot: [0, 0.12, 0], interactId: 'notes', interactZone: 'lab', keepLine: 0.10
