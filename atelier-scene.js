@@ -78,9 +78,9 @@
     const walnut = makeCanvasTexture(512, 512, (ctx, w, h) => {
       ctx.fillStyle = '#8B6E5C';
       ctx.fillRect(0, 0, w, h);
-      for (let y = 0; y < h; y += 2) {
-        const wave = Math.sin(y * 0.045) * 8;
-        ctx.strokeStyle = y % 6 === 0 ? 'rgba(62,44,34,0.22)' : 'rgba(112,86,70,0.16)';
+      for (let y = 0; y < h; y += 3) {
+        const wave = Math.sin(y * 0.027) * 12 + Math.sin(y * 0.081) * 3;
+        ctx.strokeStyle = y % 9 === 0 ? 'rgba(62,44,34,0.16)' : 'rgba(112,86,70,0.08)';
         ctx.lineWidth = 1 + (y % 3 === 0 ? 1 : 0);
         ctx.beginPath();
         ctx.moveTo(0, y);
@@ -89,94 +89,43 @@
       }
     }, 2, 1);
 
-    // 4. Actape Exhibit Artwork
-    const actapeArt = makeCanvasTexture(768, 512, (ctx, w, h) => {
-      ctx.fillStyle = '#202321';
-      ctx.fillRect(0, 0, w, h);
-      // Architectural grid
-      ctx.strokeStyle = 'rgba(242,240,235,0.08)';
-      ctx.lineWidth = 1;
-      for (let x = 48; x < w; x += 48) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-      for (let y = 48; y < h; y += 48) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-      // Window frame
-      ctx.fillStyle = '#2A2E2B';
-      ctx.strokeStyle = 'rgba(242,240,235,0.18)';
-      ctx.lineWidth = 2;
-      ctx.fillRect(72, 92, w - 144, 270);
-      ctx.strokeRect(72, 92, w - 144, 270);
-      // Timeline bars
-      const bars = [
-        { x: 112, y: 158, w: 190, c: '#A04D3E' },
-        { x: 245, y: 204, w: 260, c: '#E4E0D7' },
-        { x: 158, y: 250, w: 210, c: '#8E715F' },
-        { x: 390, y: 296, w: 230, c: '#A04D3E' }
-      ];
-      bars.forEach(b => {
-        ctx.fillStyle = b.c;
-        ctx.fillRect(b.x, b.y, b.w, 22);
-      });
-      // Playhead
-      ctx.strokeStyle = '#A04D3E';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.moveTo(356, 126); ctx.lineTo(356, 342); ctx.stroke();
-      ctx.fillStyle = '#A04D3E';
-      ctx.beginPath(); ctx.arc(356, 126, 6, 0, Math.PI * 2); ctx.fill();
-      // Editorial typography
-      ctx.fillStyle = '#F2F0EB';
-      ctx.font = '400 54px Georgia, serif';
-      ctx.fillText('Actape', 74, 434);
-      ctx.fillStyle = '#A04D3E';
-      ctx.font = '500 18px sans-serif';
-      ctx.fillText('01 / CROSS-PLATFORM MACRO WORKFLOW', 74, 466);
-      ctx.fillStyle = 'rgba(242,240,235,0.55)';
-      ctx.font = '500 15px monospace';
-      ctx.fillText('MACOS · WINDOWS · RECORD / EDIT / REPLAY', 340, 434);
+    // Original product imagery from the public project repositories.
+    function drawContained(ctx, img, x, y, width, height) {
+      const scale = Math.min(width / img.width, height / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      ctx.drawImage(img, x + (width - w) / 2, y + (height - h) / 2, w, h);
+    }
+    function createProductPlate(url, draw, width = 1024, height = 680) {
+      const texture = makeCanvasTexture(width, height, (ctx,w,h) => draw(ctx,w,h,null));
+      const img = new Image();
+      img.onload = () => {
+        const canvas = texture.image;
+        draw(canvas.getContext('2d'), canvas.width, canvas.height, img);
+        texture.needsUpdate = true;
+        texture.userData.sourceLoaded = true;
+      };
+      img.src = url;
+      return texture;
+    }
+    const actapeArt = createProductPlate('assets/actape-windows-preview.png', (ctx,w,h,img) => {
+      ctx.fillStyle = '#29362F'; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = '#E8E3D7'; ctx.fillRect(58,34,w-116,492);
+      if(img) drawContained(ctx,img,70,46,w-140,468);
+      ctx.fillStyle = '#F4F0E6'; ctx.font = '400 65px Georgia, serif'; ctx.fillText('Actape',58,600);
+      ctx.fillStyle = '#C9AC8D'; ctx.font = '500 18px sans-serif'; ctx.fillText('01 / CROSS-PLATFORM MACRO TOOL',60,639);
     });
-
-    // 5. Snug for Windows Exhibit Artwork
-    const snugArt = makeCanvasTexture(768, 512, (ctx, w, h) => {
-      ctx.fillStyle = '#ECE8DF';
-      ctx.fillRect(0, 0, w, h);
-      // Subtle architectural crosshairs
-      ctx.strokeStyle = 'rgba(119,117,111,0.18)';
-      ctx.lineWidth = 1;
-      for (let x = 64; x < w; x += 64) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-      // Desktop outline left
-      ctx.strokeStyle = '#77756F';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(86, 98, 286, 196);
-      ctx.fillStyle = 'rgba(142,113,95,0.14)';
-      ctx.fillRect(102, 114, 146, 164);
-      ctx.fillStyle = 'rgba(32,35,33,0.08)';
-      ctx.fillRect(258, 114, 98, 164);
-      // Connector arc
-      ctx.strokeStyle = '#A04D3E';
-      ctx.lineWidth = 2.5;
-      ctx.setLineDash([6, 6]);
-      ctx.beginPath();
-      ctx.moveTo(372, 196);
-      ctx.quadraticCurveTo(430, 140, 488, 196);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      // Phone portrait viewport right
-      ctx.fillStyle = '#202321';
-      ctx.fillRect(488, 72, 164, 284);
-      ctx.fillStyle = '#F2F0EB';
-      ctx.fillRect(500, 90, 140, 248);
-      ctx.fillStyle = '#A04D3E';
-      ctx.fillRect(516, 112, 108, 18);
-      ctx.fillStyle = '#E4E0D7';
-      ctx.fillRect(516, 144, 108, 92);
-      ctx.fillStyle = '#8E715F';
-      ctx.fillRect(516, 250, 108, 68);
-      // Typography
-      ctx.fillStyle = '#202321';
-      ctx.font = '400 50px Georgia, serif';
-      ctx.fillText('Snug for Windows', 86, 430);
-      ctx.fillStyle = '#A04D3E';
-      ctx.font = '500 18px sans-serif';
-      ctx.fillText('02 / PORTRAIT REMOTE WORKSPACE', 86, 462);
+    const snugArt = createProductPlate('assets/snug-phone-running.png', (ctx,w,h,img) => {
+      ctx.fillStyle = '#DCDDD1'; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = '#546C70'; ctx.fillRect(482,0,542,h);
+      if(img) drawContained(ctx,img,510,27,486,626);
+      ctx.fillStyle = '#29362F'; ctx.font = '400 62px Georgia, serif'; ctx.fillText('Snug',50,270);
+      ctx.font = '400 42px Georgia, serif'; ctx.fillText('for Windows',50,328);
+      ctx.fillStyle = '#A7553D'; ctx.font = '500 18px sans-serif'; ctx.fillText('02 / PORTRAIT WORKSPACE',52,383);
     });
+    const phoneScreen = createProductPlate('assets/snug-phone-running.png', (ctx,w,h,img) => {
+      ctx.fillStyle = '#E9E8E1'; ctx.fillRect(0,0,w,h);
+      if(img) drawContained(ctx,img,0,0,w,h);
+    },320,660);
 
     // 6. Lab Monitor Screen
     const labScreen = makeCanvasTexture(768, 480, (ctx, w, h) => {
@@ -276,7 +225,7 @@
       ctx.fillText('github.com/rizetngan', 52, 560);
     });
 
-    return { limestone, plaster, walnut, actapeArt, snugArt, labScreen, sketchpad, aboutPlaque };
+    return { limestone, plaster, walnut, actapeArt, snugArt, labScreen, sketchpad, aboutPlaque, phoneScreen };
   }
 
   /**
@@ -503,7 +452,7 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.02;
+    renderer.toneMappingExposure = 0.91;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xDEDCD0);
@@ -513,10 +462,10 @@
     const textures = createTextures();
 
     // Lighting — Soft natural architectural daylight + warm bench lamp
-    const hemi = new THREE.HemisphereLight(0xF4F5EF, 0x8E8D79, 0.58);
+    const hemi = new THREE.HemisphereLight(0xF4F5EF, 0x8E8D79, 0.72);
     scene.add(hemi);
 
-    const sun = new THREE.DirectionalLight(0xFFF0D7, 1.65);
+    const sun = new THREE.DirectionalLight(0xFFF0D7, 1.25);
     sun.position.set(-9, 12, 7);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -654,7 +603,7 @@
     archGroup.add(new THREE.LineSegments(spineGeo, gridMat));
 
     // North Work Archive Wall (z = -5.5)
-    addArchMesh(archGroup, new THREE.BoxGeometry(14.4, 4.8, 0.35), { map: textures.plaster, color: 0xECE8E0 }, 'corridor', {
+    addArchMesh(archGroup, new THREE.BoxGeometry(14.4, 4.8, 0.35), { map: textures.plaster, color: 0xA2AA98 }, 'corridor', {
       pos: [0, 2.4, -5.5], castShadow: false, keepLine: 0.08, cameraBlocker: true
     });
 
@@ -669,7 +618,7 @@
 
     // Purpose-built layered gallery wall: reveals, shadow joints and a tactile
     // horizontal datum make it read as architecture rather than an empty box.
-    const shadowJointMat = new THREE.MeshStandardMaterial({ color: 0xB9AEA1, roughness: 0.95 });
+    const shadowJointMat = new THREE.MeshStandardMaterial({ color: 0x6B766B, roughness: 0.95 });
     [-5.95, -3.05, 0, 3.05, 5.95].forEach(x => {
       const joint = new THREE.Mesh(new THREE.BoxGeometry(0.014, 3.88, 0.024), shadowJointMat);
       joint.position.set(x, 2.1, -5.304);
@@ -820,7 +769,7 @@
     });
     const phoneFace = new THREE.Mesh(
       new THREE.PlaneGeometry(0.138, 0.285),
-      new THREE.MeshBasicMaterial({ color: 0xECE8DF })
+      new THREE.MeshBasicMaterial({ map: textures.phoneScreen, color: 0xFFFFFF })
     );
     phoneFace.position.z = 0.012;
     phoneBody.add(phoneFace);
@@ -875,7 +824,7 @@
       // Artwork Canvas Plane
       const artMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(2.18, 1.42),
-        new THREE.MeshStandardMaterial({ map: texture, roughness: 0.65, metalness: 0.04 })
+        new THREE.MeshStandardMaterial({ map: texture, roughness: 0.85, metalness: 0, emissiveMap: texture, emissive: 0xffffff, emissiveIntensity: 0.10 })
       );
       artMesh.position.set(0, 0, 0.074);
       artMesh.userData.interactId = interactId;
@@ -1047,6 +996,7 @@
       mountMarker,
       terraSphere,
       zoneRevealState,
+      getAssetStatus: () => ({ actape: !!textures.actapeArt.userData.sourceLoaded, snug: !!textures.snugArt.userData.sourceLoaded, phone: !!textures.phoneScreen.userData.sourceLoaded }),
       updateSketchReveal
     };
   }
