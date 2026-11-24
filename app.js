@@ -200,7 +200,7 @@
       overline: '04 / WORK ARCHIVE',
       title: '作品档案厅',
       zoneLabel: 'WORK ARCHIVE',
-      desc: '收录独立作品 Actape 与 Snug for Windows。点击展框打开详情，或在 Mini 模式下靠近展墙悬浮预览。',
+      desc: '收录独立作品 Actape 与 Snug for Windows。点击展框打开详情，或在 Mini 模式下靠近展品后按 E 查看。',
       camPos: new THREE.Vector3(0, 3.02, 0.75),
       camLook: new THREE.Vector3(0, 2.14, -5.2),
       spawnPos: new THREE.Vector3(0, 0, -2.5),
@@ -338,7 +338,7 @@
     orbitYaw: 0,
     orbitPitch: 0.40, // ~23° relaxed eye-level exploration; adjustable from 4° to 75°
     orbitDist: 2.85, // user-requested camera arm length; does not change on collision
-    collisionDist: 3.15, // actual arm length after architectural obstruction
+    collisionDist: 2.85, // actual arm length after architectural obstruction
     focusReturn: null, // saved user-selected view before cinematic exhibit framing
     pointerId: null,
     mouseCaptured: false,
@@ -553,6 +553,7 @@
     STATE.traversal = null;
     STATE.activeExhibit = null;
     STATE.focusedObject = null;
+    STATE.nearbyExhibit = null;
     STATE.actionCooldown = 0.35;
 
     // Face toward center / exhibit naturally
@@ -870,9 +871,9 @@
     // Architectural arch feet, timber screen and low wing. The visual model and
     // floor traversal use the same footprint, with a small body radius.
     const archObstacles = [
-      [-2.77,-2.08,7.28,8.21],[2.08,2.77,7.28,8.21],
+      [-3.60,-2.08,7.28,8.21],[2.08,3.60,7.28,8.21],
       [3.26,3.64,6.02,8.42],[-3.96,-3.28,7.70,10.31],
-      [-2.55,-1.25,8.88,9.62]
+      [-2.55,-1.25,8.88,9.62],[-6.0,-5.36,.32,4.84]
     ];
     archObstacles.forEach(([l,r,b,f])=>{
       if(p.x<=l||p.x>=r||p.z<=b||p.z>=f)return;
@@ -883,7 +884,7 @@
     // Lectern & Plinth small obstacles
     const pillars = [
       { x: -4.65, z: -0.6, r: 0.56 },
-      { x: -1.50, z: -1.56, r: 0.40 },
+      { x: -1.95, z: -1.67, r: 0.42 },
       { x: 5.15, z: -1.2, r: 0.72 },
       { x: 5.45, z: 1.35, r: 0.52 }
     ];
@@ -910,6 +911,7 @@
     }
     // Keep feet outside the original study model on the back-left of the desk.
     if(p.x>-2.02&&p.x<-1.28&&p.z>-.94&&p.z<-.36)p.z=-.36;
+    if(p.x>.40&&p.x<.96&&p.z>-.76&&p.z<-.40)p.z=-.40;
     p.x = THREE.MathUtils.clamp(p.x, DESK_BOUNDS.minX + 0.16, DESK_BOUNDS.maxX - 0.16);
     p.z = THREE.MathUtils.clamp(p.z, DESK_BOUNDS.minZ + 0.16, DESK_BOUNDS.maxZ - 0.16);
     p.y = DESK_BOUNDS.topY;
@@ -1590,6 +1592,7 @@
       orbitYaw: STATE.orbitYaw, orbitPitch: STATE.orbitPitch, orbitDist: STATE.orbitDist,
       mouseCaptured: STATE.mouseCaptured, lockUnavailable: STATE.lockUnavailable,
       assetStatus: world.getAssetStatus(),
+      nearbyExhibit: STATE.nearbyExhibit ? STATE.nearbyExhibit.id : null,
       activeExhibit: STATE.activeExhibit ? STATE.activeExhibit.id : null,
       focusedObject: STATE.focusedObject ? STATE.focusedObject.id : null
     }),
