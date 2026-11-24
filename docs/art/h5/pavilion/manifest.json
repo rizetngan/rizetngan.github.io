@@ -1,0 +1,34 @@
+{
+  "H5-pavilion-art-v01.blend": {
+    "bytes": 95557523,
+    "sha256": "b3709d1ad6b28b7ff5adee802669a7ed2df40ee7763209e67e939844ffb9712c"
+  },
+  "h5-entrance-v01.jpg": {
+    "bytes": 194772,
+    "sha256": "42bb4b60543357e1ac1628da52f44c01d64f952117a078de4cf8c9e49279fffe"
+  },
+  "h5-lab-v01.jpg": {
+    "bytes": 206952,
+    "sha256": "8c98a96f92fbc7687f032036606692cb729aab793f26df3a6a8c43702ab87d9b"
+  },
+  "h5-lab-detail-v01.jpg": {
+    "bytes": 186169,
+    "sha256": "caa1e7b65466740f507ba40d32018dc3218202fbb4ac77516b248e848b6fc38d"
+  },
+  "H5-pavilion-art-v02.blend": {
+    "bytes": 95445484,
+    "sha256": "23308517f21e2b8d7ac45337ec64ed0eb740d60102b49a59b443bd8556aa8c14"
+  },
+  "h5-entrance-v02.jpg": {
+    "bytes": 180369,
+    "sha256": "f36cc9576c5bd7f2252127639cdb2477e484aeb0b5346fddebe539fa37983912"
+  },
+  "h5-lab-v02.jpg": {
+    "bytes": 202493,
+    "sha256": "946248c4aa9be6b67e3946864d86ea768b7d9c6c53039774c6289475d786c8fd"
+  },
+  "h5-lab-detail-v02.jpg": {
+    "bytes": 192606,
+    "sha256": "427a20cdc1b984c217ced5813a0654afbe0aeddc2f5ca12e879e307407973684"
+  }
+}
