@@ -1,0 +1,46 @@
+{
+  "desk-lamp.glb": {
+    "bytes": 1466888,
+    "sha256": "b21294c03da72f5baf36ec3b4a8b78b93149ff81af515c2713387cf070d4b01f"
+  },
+  "desktop-monitor.glb": {
+    "bytes": 915032,
+    "sha256": "4e20c271768bd51cfe836c32d73f73788ed8a0d2afa8f992c97d7dbee732b5d6"
+  },
+  "mechanical-keyboard.glb": {
+    "bytes": 1715032,
+    "sha256": "b4572679ad2c4e4819a2510a1ca8e98fce5dad102bbce94e33fd81f036cde899"
+  },
+  "office-chair.glb": {
+    "bytes": 732468,
+    "sha256": "2f10e58869b9ec5d9269d55b3d99a194fae1a47dc6e7d0e52181ecf77e0cc9cf"
+  },
+  "plaster-color.jpg": {
+    "bytes": 245462,
+    "sha256": "a692d4207c981d9319ecd105bb2b93e2bb4bdfdf413c2e36645a5d96baae705a"
+  },
+  "plaster-normal.jpg": {
+    "bytes": 277195,
+    "sha256": "54207a3601002a6e1823253d7a22cd70ce5785da4b3c56fc6b504344439c0bea"
+  },
+  "plaster-roughness.jpg": {
+    "bytes": 65810,
+    "sha256": "70e2472bc108286bb2819984846ad4f4f089178a2ad75db8b1604bc376e6feb6"
+  },
+  "studio-env.jpg": {
+    "bytes": 80811,
+    "sha256": "46a453b9928c2308813ed181830882747605ada8939f30c5afa0c0b73027381a"
+  },
+  "walnut-color.jpg": {
+    "bytes": 129808,
+    "sha256": "37da4013f2ca7560cf9fea5ec59248bfd5074425213d553d7f35d52d5fc57aa0"
+  },
+  "walnut-normal.jpg": {
+    "bytes": 70553,
+    "sha256": "471ac299cf35656c509ce8682add8533cf49e36049a5dc8bbd959a909c9f3cad"
+  },
+  "walnut-roughness.jpg": {
+    "bytes": 136312,
+    "sha256": "85ab6b3e1ecd34cf7220be50eede764daadc823d271363aca8bf71fc9bd5c134"
+  }
+}

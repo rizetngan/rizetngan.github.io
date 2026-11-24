@@ -486,24 +486,40 @@
 
     const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 320);
     const textures = createTextures();
-    const assetReady = { plaster: false, walnut: false, chair: false, roof: false, mini: false };
-    function replaceTexturePixels(target,url,key) {
-      const img=new Image();
-      img.onload=()=>{
-        const canvas=target.image, ctx=canvas.getContext('2d');
-        // Remap photographic texture toward the illustrated material swatches.
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle=key==='plaster'?'#e8e1d2':'#997b60';
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.globalAlpha=key==='plaster'?.23:.28;
-        ctx.drawImage(img,0,0,canvas.width,canvas.height);
-        ctx.globalAlpha=1;
-        target.needsUpdate=true; assetReady[key]=true;
+    const assetReady = { plaster: false, walnut: false, chair: false, roof: false, mini: false, monitor: false, keyboard: false, lamp: false, environment: false, pbr: false };
+    const restorationPath='assets/restoration/';
+    const surfacePBR = {};
+    const textureLoader=new THREE.TextureLoader();
+    function copySurface(key) {
+      const target=textures[key];
+      const load=(type,encoding)=>{
+        const tex=textureLoader.load(restorationPath+key+'-'+type+'.jpg',()=>{
+          tex.needsUpdate=true;
+          surfacePBR[key].ready++;
+          assetReady[key]=surfacePBR[key].ready===3;
+          assetReady.pbr=assetReady.plaster&&assetReady.walnut;
+        });
+        tex.encoding=encoding;
+        tex.wrapS=target.wrapS;tex.wrapT=target.wrapT;
+        tex.repeat.copy(target.repeat);
+        tex.anisotropy=4;
+        return tex;
       };
-      img.src=url;
+      surfacePBR[key]={ready:0};
+      surfacePBR[key].map=load('color',THREE.sRGBEncoding);
+      surfacePBR[key].normalMap=load('normal',THREE.LinearEncoding);
+      surfacePBR[key].roughnessMap=load('roughness',THREE.LinearEncoding);
     }
-    replaceTexturePixels(textures.plaster,'assets/e2/plaster.jpg','plaster');
-    replaceTexturePixels(textures.walnut,'assets/e2/walnut.jpg','walnut');
+    copySurface('walnut');copySurface('plaster');
+    // Real HDRI-derived environment reflection, no still-image scene overlay.
+    textureLoader.load(restorationPath+'studio-env.jpg',tex=>{
+      tex.mapping=THREE.EquirectangularReflectionMapping;
+      tex.encoding=THREE.sRGBEncoding;
+      const pmrem=new THREE.PMREMGenerator(renderer);
+      const env=pmrem.fromEquirectangular(tex);
+      scene.environment=env.texture;
+      tex.dispose();pmrem.dispose();assetReady.environment=true;
+    });
     const monitorImage = new Image();
     monitorImage.onload=()=>{
       const cv=textures.labScreen.image, ctx=cv.getContext('2d');
@@ -516,10 +532,10 @@
     monitorImage.src='assets/actape-windows-preview.png';
 
     // Lighting — Soft natural architectural daylight + warm bench lamp
-    const hemi = new THREE.HemisphereLight(0xF8F1DF, 0xA09680, 1.02);
+    const hemi = new THREE.HemisphereLight(0xEDE7D7, 0x6D766E, .88);
     scene.add(hemi);
 
-    const sun = new THREE.DirectionalLight(0xFFF0D7, 1.12);
+    const sun = new THREE.DirectionalLight(0xFFE7C8, 1.48);
     sun.position.set(-12, 10, 5);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -535,7 +551,7 @@
     sun.shadow.radius = 3;
     scene.add(sun);
 
-    const fillLight = new THREE.DirectionalLight(0xE0E8E6, 0.52);
+    const fillLight = new THREE.DirectionalLight(0xD9E1DE, .34);
     fillLight.position.set(8, 6, -7);
     scene.add(fillLight);
 
@@ -564,6 +580,14 @@
         metalness: 0.04,
         ...matOptions
       });
+      const profile=Object.keys(surfacePBR).find(k=>mat.map===textures[k]);
+      if(profile){
+        const maps=surfacePBR[profile];
+        mat.map=maps.map;mat.normalMap=maps.normalMap;
+        mat.roughnessMap=maps.roughnessMap;
+        mat.normalScale.setScalar(profile==='walnut'?.40:.14);
+        mat.envMapIntensity=profile==='walnut'?.55:.36;
+      }
       const mesh = new THREE.Mesh(geo, mat);
       if (options.pos) mesh.position.set(...options.pos);
       if (options.rot) mesh.rotation.set(...options.rot);
@@ -613,7 +637,7 @@
     // Main honed limestone floor (walkable floor)
     // A real *object* instead of an infinite CGI floor: the studio sits on a
     // carefully finished architectural model plinth with a visible cut edge.
-    const plinthMat = new THREE.MeshStandardMaterial({ map:textures.walnut,color: 0xB7A085, roughness: 0.92 });
+    const plinthMat = new THREE.MeshStandardMaterial({ map:surfacePBR.walnut.map,normalMap:surfacePBR.walnut.normalMap,roughnessMap:surfacePBR.walnut.roughnessMap,color: 0xC0B6A7, roughness: 0.9, envMapIntensity:.45 });plinthMat.normalScale.setScalar(.25);
     const plinth = new THREE.Mesh(roundedSlab(14.2,18.1,.34,.18), plinthMat);
     plinth.position.set(0, -0.23, 1.8);
     plinth.castShadow = true;
@@ -668,14 +692,14 @@
     archGroup.add(new THREE.LineSegments(spineGeo, gridMat));
 
     // North Work Archive Wall (z = -5.5)
-    addArchMesh(archGroup, new THREE.BoxGeometry(14.4, 4.8, 0.35), { map: textures.plaster, color: 0xA2AA98 }, 'corridor', {
+    addArchMesh(archGroup, new THREE.BoxGeometry(14.4, 4.8, 0.35), { map: textures.plaster, color: 0x7A8A7E }, 'corridor', {
       pos: [0, 2.4, -5.5], castShadow: false, keepLine: 0.08, cameraBlocker: true
     });
 
     // West elevation: real opening with thin mullions and a deep plaster reveal.
     function wallPart(w,h,d,x,y,z) {
       return addArchMesh(archGroup,new THREE.BoxGeometry(w,h,d),
-        {map:textures.plaster,color:0xF1E5CF,roughness:.97},null,
+        {map:textures.plaster,color:0xDAD3C3,roughness:.91},null,
         {pos:[x,y,z],cameraBlocker:true,sketchEdges:false});
     }
     wallPart(.35,4.8,6.8,-6.6,2.4,-3.1);
@@ -749,7 +773,7 @@
     // Front face stays behind the product plates and preserves their existing lift anchors.
     [-2.12,2.12].forEach((x,i)=>{
       addArchMesh(archGroup,new THREE.BoxGeometry(3.65,3.82,.045),
-        {color:i===0?0x5D7064:0xB48A6A,roughness:.96,map:textures.plaster},null,
+        {color:i===0?0x3D5549:0x9B775A,roughness:.96,map:textures.plaster},null,
         {pos:[x,2.16,-5.29],sketchEdges:false});
       addArchMesh(archGroup,new THREE.BoxGeometry(3.66,.055,.10),
         {color:PALETTE.walnutDark,roughness:.82},null,{pos:[x,.25,-5.235],sketchEdges:false});
@@ -761,7 +785,7 @@
       {pos:[3.02,1.55,7.72],cameraBlocker:true,sketchEdges:false});
     // A connected entrance elevation. The left wing joins the existing
     // west window wall to the arched doorway; the right is a deliberate cutaway.
-    const entranceStone={map:textures.plaster,color:0xE6D8BF,roughness:.96};
+    const entranceStone={map:textures.plaster,color:0xD5C7B4,roughness:.91};
     const entranceTrim={color:0x8B7155,roughness:.9};
     const panel=(w,h,d,x,y,z,mat=entranceStone,block=true)=>addArchMesh(archGroup,new THREE.BoxGeometry(w,h,d),mat,null,{pos:[x,y,z],cameraBlocker:block,sketchEdges:false});
     panel(.35,3.78,2.52,-6.6,1.89,6.76);
@@ -783,7 +807,7 @@
     for(let i=0;i<9;i++){const x=-6.47+i*.35,y=(i%2)*.22;seamPoints.push(new THREE.Vector3(x,.22+y,7.941),new THREE.Vector3(x,.44+y,7.941));}
     archGroup.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seamPoints),seamMat));
     const heroArch=addArchMesh(archGroup,archGeometry(4.5,1.78,.38,.58),
-      {color:0xD9B4A0,map:textures.clay,roughness:.93},null,
+      {color:0xC69B86,map:textures.clay,roughness:.93},null,
       {pos:[0,0,7.45],cameraBlocker:true,sketchEdges:false});
     addArchMesh(archGroup,archGeometry(4.5,1.78,.065,.022),
       {color:0xE3CBA9,roughness:.84},null,{pos:[0,0,8.035],sketchEdges:false});
@@ -854,13 +878,13 @@
     // Smoked Walnut Desk Top (y = 0.96 to 1.02, walkable surface at y = 1.02!)
     const deskTopMesh = addArchMesh(benchGroup, roundedSlab(4.6,2.2,.09,.15), {
       map: textures.walnut,
-      color: 0xD8C3A6,
-      roughness: 0.89
+      color: 0xD6C7B9,
+      roughness: 0.74
     }, 'lab', {
       pos: [0, 0.975, 0], interactId: 'lab', interactZone: 'lab', keepLine: 0.12, cameraBlocker: true
     });
     deskTopMesh.name = 'DeskSurface';
-    deskTopMesh.material.bumpMap=textures.walnut;deskTopMesh.material.bumpScale=.0025;
+    deskTopMesh.material.normalScale.setScalar(.35);
     const joineryInk=new THREE.LineBasicMaterial({color:0x533D2D,transparent:true,opacity:.28});
     const underside=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(4.32,.016,1.97),25),joineryInk);
     underside.position.set(0,.93,0);benchGroup.add(underside);
@@ -912,14 +936,16 @@
     for(const x of [-.16,.16])addArchMesh(chair,new THREE.CylinderGeometry(.021,.021,.38,12),
       {color:0x46534A,roughness:.78},null,{pos:[x,.65,-.17],rot:[-.13,0,0],sketchEdges:false});
     if(THREE.GLTFLoader){
-      new THREE.GLTFLoader().load('assets/e2/chair.gltf',gltf=>{
+      new THREE.GLTFLoader().load(restorationPath+'office-chair.glb',gltf=>{
         const model=gltf.scene;
         const bounds=new THREE.Box3().setFromObject(model);
         const sz=bounds.getSize(new THREE.Vector3());
-        const k=.91/sz.y;
+        const k=Math.min(.91/sz.y,.66/sz.x,.66/sz.z);
         model.scale.setScalar(k);
-        model.position.set(0,-bounds.min.y*k,0);
         model.rotation.y=Math.PI;
+        model.updateMatrixWorld(true);
+        const fitted=new THREE.Box3().setFromObject(model),center=fitted.getCenter(new THREE.Vector3());
+        model.position.set(-center.x,-fitted.min.y,-center.z);
         model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
         for(const child of chair.children)child.visible=false;
         chair.add(model);assetReady.chair=true;
@@ -944,6 +970,7 @@
     benchGroup.add(mountMarker);
 
     // Studio Monitor on Bench (center-back)
+    const monitorStart=benchGroup.children.length;
     addArchMesh(benchGroup, new THREE.BoxGeometry(0.38, 0.025, 0.26), { color: PALETTE.metalDark, metalness: 0.4, roughness: 0.4 }, 'lab', {
       pos: [-0.15, 1.032, -0.45], keepLine: 0.08
     });
@@ -969,14 +996,18 @@
     interactables.push(screenPlane);
     monitorBezel.add(screenPlane);
 
+    const monitorFallback=benchGroup.children.slice(monitorStart);
     // Keyboard & Minimal Mouse
+    const keyboardStart=benchGroup.children.length;
     addArchMesh(benchGroup, new THREE.BoxGeometry(0.56, 0.022, 0.2), { color: 0x3A3E3C, roughness: 0.6 }, 'lab', {
       pos: [-0.18, 1.032, 0.04], keepLine: 0.08
     });
+    const oldKeyboardCase=benchGroup.children[keyboardStart];
     addArchMesh(benchGroup, roundedSlab(.08,.13,.024,.037), { color: 0x3A3E3C, roughness: 0.5 }, 'lab', {
       pos: [0.24, 1.032, 0.05], keepLine: 0.08
     });
 
+    const keycapStart=benchGroup.children.length;
     // Keycaps and a paper desk mat articulate scale without adding random clutter.
     for (let row = 0; row < 4; row++) {
       for (let col = 0; col < 12; col++) {
@@ -986,6 +1017,7 @@
           });
       }
     }
+    const keyboardFallback=[oldKeyboardCase,...benchGroup.children.slice(keycapStart)];
     // Mobile Prototype Device on Stand (right side of desk -> Snug preview)
     addArchMesh(benchGroup, new THREE.BoxGeometry(0.14, 0.02, 0.14), { color: PALETTE.metalDark, metalness: 0.4, roughness: 0.4 }, 'lab', {
       pos: [1.05, 1.03, -0.18], keepLine: 0.08
@@ -1031,6 +1063,7 @@
       pos: [-1.15, 1.042, 0.22], rot: [Math.PI / 2, 0, 0.52], sketchEdges: false
     });
 
+    const lampStart=benchGroup.children.length;
     // Authored articulated task lamp: enamel hemispherical shade, brass hinge,
     // curved arm and warm inner reflector (not a primitive cone).
     addArchMesh(benchGroup,roundedSlab(.29,.27,.034,.13),
@@ -1042,6 +1075,74 @@
       {color:0x526D70,roughness:.72,side:THREE.DoubleSide},null,{pos:[1.49,1.59,-.32],rot:[.20,0,.34],sketchEdges:false});
     const lampRim=new THREE.Mesh(new THREE.TorusGeometry(.174,.008,8,32),new THREE.MeshStandardMaterial({color:0xC7AA76,roughness:.7}));
     lampRim.rotation.x=Math.PI/2;lampShade.add(lampRim);
+
+    const lampFallback=benchGroup.children.slice(lampStart);
+    // Preserve all old gameplay envelopes. Models are fitted into the original
+    // bounds, not the other way around; no character/camera/state changes.
+    function professionalModel(file,key,fallback,anchor,extent,options={}){
+      if(!THREE.GLTFLoader)return;
+      new THREE.GLTFLoader().load(restorationPath+file,gltf=>{
+        try{
+          const model=gltf.scene;
+          const discard=[];
+          model.traverse(o=>{if(/^(cable|cables)$/i.test(o.name))discard.push(o);});
+          discard.forEach(o=>o.parent.remove(o));
+          model.rotation.y=options.yaw||0;
+          model.updateMatrixWorld(true);
+          const raw=new THREE.Box3().setFromObject(model);
+          const size=raw.getSize(new THREE.Vector3());
+          if(![size.x,size.y,size.z].every(v=>Number.isFinite(v)&&v>0))throw new Error('invalid asset bounds');
+          const k=Math.min(extent[0]/size.x,extent[1]/size.y,extent[2]/size.z);
+          model.scale.setScalar(k);
+          model.updateMatrixWorld(true);
+          const fitted=new THREE.Box3().setFromObject(model);
+          const center=fitted.getCenter(new THREE.Vector3());
+          model.position.set(anchor[0]-center.x,anchor[1]-fitted.min.y,anchor[2]-center.z);
+          model.updateMatrixWorld(true);
+          const mapped=[];
+          model.traverse(o=>{
+            if(!o.isMesh)return;
+            o.castShadow=true;o.receiveShadow=true;
+            const materials=Array.isArray(o.material)?o.material:[o.material];
+            for(const m of materials){
+              if(!m||!m.isMeshStandardMaterial)continue;
+              m.envMapIntensity=.65;
+              if(!mapped.some(e=>e.mat===m)){
+                mapped.push({mesh:o,mat:m,baseColor:m.color.clone(),baseEmissive:m.emissive.clone(),edges:null,keepLine:.08,professional:true});
+              }
+            }
+            if(options.interact){
+              o.userData.interactId=options.interact;o.userData.interactZone='lab';
+            }
+          });
+          let realScreen=null;
+          if(options.screen){
+            const screen=model.getObjectByName('screen');
+            if(!screen)throw new Error('professional display screen missing');
+            const sb=new THREE.Box3().setFromObject(screen);
+            const ss=sb.getSize(new THREE.Vector3()),sc=sb.getCenter(new THREE.Vector3());
+            if(ss.x<.1||ss.y<.1)throw new Error('invalid screen plane');
+            realScreen=new THREE.Mesh(new THREE.PlaneGeometry(ss.x,ss.y),
+              new THREE.MeshBasicMaterial({map:textures.labScreen,color:0xffffff,toneMapped:false}));
+            realScreen.position.set(sc.x,sc.y,sb.max.z+.0018);
+            realScreen.userData.interactId='lab';realScreen.userData.interactZone='lab';
+            screen.visible=false;
+          }
+          for(const o of fallback)o.visible=false;
+          const obsolete=new Set();
+          fallback.forEach(o=>o.traverse(n=>obsolete.add(n)));
+          for(let i=interactables.length-1;i>=0;i--)if(obsolete.has(interactables[i]))interactables.splice(i,1);
+          benchGroup.add(model);
+          if(options.interact)model.traverse(o=>{if(o.isMesh&&o.visible)interactables.push(o);});
+          if(realScreen){benchGroup.add(realScreen);interactables.push(realScreen);}
+          zoneRevealState.lab.items.push(...mapped);
+          assetReady[key]=true;
+        }catch(e){console.warn('Restoration model fallback',key,e);}
+      },undefined,e=>console.warn('Restoration asset unavailable',key,e));
+    }
+    professionalModel('desktop-monitor.glb','monitor',monitorFallback,[-.15,1.02,-.43],[1.48,.98,.56],{screen:true,interact:'lab'});
+    professionalModel('mechanical-keyboard.glb','keyboard',keyboardFallback,[-.18,1.024,.04],[.62,.048,.24],{});
+    professionalModel('desk-lamp.glb','lamp',lampFallback,[1.72,1.02,-.46],[.60,.78,.54],{yaw:Math.PI/2});
 
     // Open ceramic vessel, with a visible wall thickness and an original handle.
     const mugProfile = [[0,0],[0.055,0],[0.064,0.012],[0.068,0.13],[0.058,0.13],[0.054,0.018],[0,0.018]]
@@ -1237,7 +1338,7 @@
         const r = THREE.MathUtils.clamp(zone.value, 0, 1);
         zone.items.forEach((item) => {
           // Preserve intentional material/color hierarchy even in unexplored zones.
-          item.mat.color.copy(sketchColor).lerp(item.baseColor, 0.91 + 0.09 * r);
+          item.mat.color.copy(sketchColor).lerp(item.baseColor, 0.70 + 0.30 * r);
           if (item.edges) {
             item.edges.material.opacity = THREE.MathUtils.lerp(0.40, item.keepLine * 0.75, r);
           }
