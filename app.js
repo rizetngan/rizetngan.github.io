@@ -281,6 +281,7 @@
     world = window.createAtelierWorld(canvasEl);
   } catch (err) {
     console.warn('WebGL fallback activated:', err);
+    document.documentElement.classList.add('studio-fallback');
     fallbackEl.classList.add('active');
     fallbackEl.setAttribute('aria-hidden', 'false');
     wireFallbackOnly();
