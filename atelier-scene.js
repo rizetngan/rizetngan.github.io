@@ -6,16 +6,19 @@
   'use strict';
 
   const PALETTE = {
-    ivory: 0xF2F0EB,
-    ink: 0x202321,
-    terra: 0xA04D3E,
-    stone: 0xE4E0D7,
-    stoneWarm: 0xDDD7CC,
-    walnut: 0x8E715F,
-    walnutDark: 0x6A5244,
-    graphite: 0x77756F,
-    metalDark: 0x313634,
-    paper: 0xF7F5F0
+    ivory: 0xF3EFE5,
+    ink: 0x28332F,
+    terra: 0xA7553D,
+    stone: 0xDCD6C7,
+    stoneWarm: 0xC6BBA7,
+    walnut: 0x866951,
+    walnutDark: 0x594537,
+    graphite: 0x4F5148,
+    metalDark: 0x35433D,
+    paper: 0xF7F3E8,
+    sage: 0x819489,
+    blue: 0x526E7C,
+    ochre: 0xBDA064
   };
 
   function makeCanvasTexture(w, h, drawFn, repeatX = 1, repeatY = 1) {
@@ -287,8 +290,8 @@
       this.group.visible = false;
       this.group.scale.setScalar(0.68); // miniature: ~40% of desk height
 
-      const matGraphite = new THREE.MeshStandardMaterial({ color: 0x2B2F2D, roughness: 0.72, metalness: 0.08 });
-      const matIvory = new THREE.MeshStandardMaterial({ color: PALETTE.ivory, roughness: 0.55, metalness: 0.04 });
+      const matGraphite = new THREE.MeshStandardMaterial({ color: 0x34473E, roughness: 0.89, metalness: 0.0 });
+      const matIvory = new THREE.MeshStandardMaterial({ color: 0xD4B899, roughness: 0.92, metalness: 0.0 });
       const matTerra = new THREE.MeshStandardMaterial({ color: PALETTE.terra, roughness: 0.48, metalness: 0.05 });
 
       // Rig root for bounce/hover/squash
@@ -314,7 +317,7 @@
       this.rig.add(this.rightLeg);
 
       // Sculpted tapered architectural torso
-      const torsoGeo = new THREE.CylinderGeometry(0.072, 0.098, 0.25, 16);
+      const torsoGeo = new THREE.CylinderGeometry(0.086, 0.098, 0.27, 24);
       this.torso = new THREE.Mesh(torsoGeo, matGraphite);
       this.torso.position.y = 0.325;
       this.torso.castShadow = true;
@@ -355,11 +358,11 @@
 
       // Two tiny sculpted shoes anchor the figurine to the model world.
       const shoeGeo = new THREE.BoxGeometry(0.07, 0.028, 0.12);
-      [-0.049, 0.049].forEach((x) => {
+      [this.leftLeg, this.rightLeg].forEach((leg) => {
         const shoe = new THREE.Mesh(shoeGeo, matGraphite);
-        shoe.position.set(x, 0.016, 0.018);
+        shoe.position.set(0, -0.194, 0.018);
         shoe.castShadow = true;
-        this.rig.add(shoe);
+        leg.add(shoe);
       });
 
       // Smooth ovoid sculptural head (not big-head cartoon: ~1:6.5 architectural proportion)
@@ -370,11 +373,15 @@
       this.head.castShadow = true;
       this.rig.add(this.head);
 
-      // Subtle forward gaze cue (minimal dark visor/nose line so facing direction reads clearly)
-      const gazeGeo = new THREE.BoxGeometry(0.044, 0.01, 0.014);
-      const gaze = new THREE.Mesh(gazeGeo, matGraphite);
-      gaze.position.set(0, 0.554, 0.061);
-      this.rig.add(gaze);
+      // Matte sculptural hair cap; no visor, eyes or cartoon facial markings.
+      const hair = new THREE.Mesh(new THREE.SphereGeometry(0.069, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.52), matGraphite);
+      hair.scale.set(0.94, 1.02, 0.98);
+      hair.position.set(0, 0.559, -0.004);
+      hair.castShadow = true;
+      this.rig.add(hair);
+      const coatSeam = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.18, 0.006), matGraphite);
+      coatSeam.position.set(0, 0.315, 0.094);
+      this.rig.add(coatSeam);
 
       // Projected soft contact shadow disc
       const shadowTex = makeCanvasTexture(128, 128, (ctx, w, h) => {
@@ -496,21 +503,21 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.14;
+    renderer.toneMappingExposure = 1.02;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xE9E4DB);
-    scene.fog = new THREE.FogExp2(0xE9E4DB, 0.009);
+    scene.background = new THREE.Color(0xDEDCD0);
+    scene.fog = new THREE.FogExp2(0xDEDCD0, 0.007);
 
     const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 80);
     const textures = createTextures();
 
     // Lighting — Soft natural architectural daylight + warm bench lamp
-    const hemi = new THREE.HemisphereLight(0xFFF8ED, 0xB9AFA0, 0.78);
+    const hemi = new THREE.HemisphereLight(0xF4F5EF, 0x8E8D79, 0.58);
     scene.add(hemi);
 
-    const sun = new THREE.DirectionalLight(0xFFF7EB, 1.30);
-    sun.position.set(-10, 16, 12);
+    const sun = new THREE.DirectionalLight(0xFFF0D7, 1.65);
+    sun.position.set(-9, 12, 7);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.near = 1;
@@ -521,10 +528,11 @@
     sun.shadow.camera.top = d;
     sun.shadow.camera.bottom = -d;
     sun.shadow.bias = -0.0005;
-    sun.shadow.normalBias = 0.02;
+    sun.shadow.normalBias = 0.014;
+    sun.shadow.radius = 3;
     scene.add(sun);
 
-    const fillLight = new THREE.DirectionalLight(0xE4E2DC, 0.26);
+    const fillLight = new THREE.DirectionalLight(0xD7E7EE, 0.36);
     fillLight.position.set(8, 6, -7);
     scene.add(fillLight);
 
@@ -543,7 +551,7 @@
       about:    { pos: new THREE.Vector3(5.0, 1.3, -1.2), radius: 4.4, value: 0.30, minValue: 0.22, items: [] }
     };
 
-    const sketchColor = new THREE.Color(0xECEAE3);
+    const sketchColor = new THREE.Color(0xE7E4D9);
     const interactables = [];
     const cameraColliders = [];
 
@@ -611,7 +619,7 @@
     const plinthFoot = new THREE.Mesh(new THREE.BoxGeometry(15.0, 0.045, 21.2), new THREE.MeshStandardMaterial({ color: 0x777064, roughness: 0.74 }));
     plinthFoot.position.set(0, -0.43, 3.0);
     archGroup.add(plinthFoot);
-    const presentationGround = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshStandardMaterial({ color: 0xE5DFD5, roughness: 1.0 }));
+    const presentationGround = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshStandardMaterial({ color: 0xD1CFC2, roughness: 1.0 }));
     presentationGround.rotation.x = -Math.PI / 2;
     presentationGround.position.y = -0.58;
     presentationGround.receiveShadow = true;
@@ -624,8 +632,8 @@
     const floorGeo = new THREE.PlaneGeometry(14.6, 20.8);
     const floorMat = new THREE.MeshStandardMaterial({
       map: textures.limestone,
-      color: 0xF0EDE6,
-      roughness: 0.86,
+      color: 0xF4EDE0,
+      roughness: 0.89,
       metalness: 0.02
     });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
@@ -651,11 +659,11 @@
     });
 
     // West Wall with Slatted Clerestory Window Opening (x = -6.6)
-    addArchMesh(archGroup, new THREE.BoxGeometry(0.35, 4.8, 12.0), { map: textures.plaster, color: 0xEBE7DF }, 'notes', {
+    addArchMesh(archGroup, new THREE.BoxGeometry(0.35, 4.8, 12.0), { map: textures.plaster, color: 0xD6DCCE }, 'notes', {
       pos: [-6.6, 2.4, -0.5], castShadow: false, keepLine: 0.08, cameraBlocker: true
     });
     // East Wall (x = +6.6)
-    addArchMesh(archGroup, new THREE.BoxGeometry(0.35, 4.8, 12.0), { map: textures.plaster, color: 0xEBE7DF }, 'about', {
+    addArchMesh(archGroup, new THREE.BoxGeometry(0.35, 4.8, 12.0), { map: textures.plaster, color: 0xDED6C3 }, 'about', {
       pos: [6.6, 2.4, -0.5], castShadow: false, keepLine: 0.08, cameraBlocker: true
     });
 
@@ -688,6 +696,20 @@
       });
     });
 
+    // Architectural editorial accents: inset painted reveals and shadowed trim,
+    // deliberately asymmetric instead of decorating every surface.
+    [10.2, 7.6, 5.0].forEach((zPos, idx) => {
+      const tone = idx === 0 ? PALETTE.terra : idx === 1 ? PALETTE.sage : PALETTE.blue;
+      const side = idx === 1 ? -1 : 1;
+      addArchMesh(archGroup, new THREE.BoxGeometry(0.035, 3.98, 0.38),
+        { color: tone, roughness: 0.94 }, idx === 0 ? 'entrance' : 'corridor', {
+          pos: [side * 2.355, 2.12, zPos], sketchEdges: false, cameraBlocker: true
+        });
+      addArchMesh(archGroup, new THREE.BoxGeometry(0.49, 0.065, 0.45),
+        { color: PALETTE.graphite, roughness: 0.86 }, 'corridor', {
+          pos: [-side * 2.65, 0.035, zPos], sketchEdges: false
+        });
+    });
     // Entrance Travertine Threshold Bench (left side of corridor entrance)
     addArchMesh(archGroup, new THREE.BoxGeometry(0.55, 0.42, 1.9), { color: PALETTE.stoneWarm }, 'entrance', {
       pos: [-1.85, 0.21, 9.0], keepLine: 0.16
@@ -709,20 +731,25 @@
     scene.add(benchGroup);
 
     // Woven Warm Stone Studio Rug under Prototype Bench
-    addArchMesh(benchGroup, new THREE.BoxGeometry(6.2, 0.022, 3.8), { color: 0xDFD9CE, roughness: 0.96 }, 'lab', {
+    addArchMesh(benchGroup, new THREE.BoxGeometry(6.2, 0.022, 3.8), { color: 0xA8B0A0, roughness: 0.98 }, 'lab', {
       pos: [0, 0.011, 0], castShadow: false, keepLine: 0.10
     });
 
     // Smoked Walnut Desk Top (y = 0.96 to 1.02, walkable surface at y = 1.02!)
     const deskTopMesh = addArchMesh(benchGroup, new THREE.BoxGeometry(4.6, 0.09, 2.2), {
       map: textures.walnut,
-      color: 0xB5957E,
-      roughness: 0.62
+      color: 0xD4B49A,
+      roughness: 0.74
     }, 'lab', {
-      pos: [0, 0.975, 0], interactId: 'lab', interactZone: 'lab', keepLine: 0.12
+      pos: [0, 0.975, 0], interactId: 'lab', interactZone: 'lab', keepLine: 0.12, cameraBlocker: true
     });
     deskTopMesh.name = 'DeskSurface';
 
+    // Thin shadow reveal and timber apron give the desk a crafted furniture profile.
+    addArchMesh(benchGroup, new THREE.BoxGeometry(4.38, 0.065, 1.98),
+      { color: PALETTE.walnutDark, roughness: 0.84 }, 'lab', {
+        pos: [0, 0.899, 0], sketchEdges: false
+      });
     // Tapered Matte Graphite Steel Legs & Crossbeam
     [[-2.05, -0.88], [2.05, -0.88], [-2.05, 0.88], [2.05, 0.88]].forEach(([lx, lz]) => {
       addArchMesh(benchGroup, new THREE.BoxGeometry(0.085, 0.94, 0.085), { color: PALETTE.metalDark, roughness: 0.45, metalness: 0.35 }, 'lab', {
@@ -775,6 +802,15 @@
       pos: [0.24, 1.032, 0.05], keepLine: 0.08
     });
 
+    // Keycaps and a paper desk mat articulate scale without adding random clutter.
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 12; col++) {
+        addArchMesh(benchGroup, new THREE.BoxGeometry(0.032, 0.008, 0.032),
+          { color: row === 3 && col === 0 ? PALETTE.terra : PALETTE.graphite, roughness: 0.86 }, null, {
+            pos: [-0.414 + col * 0.042, 1.047, -0.027 + row * 0.043], sketchEdges: false, castShadow: false
+          });
+      }
+    }
     // Mobile Prototype Device on Stand (right side of desk -> Snug preview)
     addArchMesh(benchGroup, new THREE.BoxGeometry(0.14, 0.02, 0.14), { color: PALETTE.metalDark, metalness: 0.4, roughness: 0.4 }, 'lab', {
       pos: [1.05, 1.03, -0.18], keepLine: 0.08
@@ -809,9 +845,14 @@
       pos: [1.54, 1.66, -0.38], rot: [0.18, 0, 0.45], keepLine: 0.08
     });
 
-    // Matte Terracotta Ceramic Studio Mug
-    addArchMesh(benchGroup, new THREE.CylinderGeometry(0.068, 0.062, 0.13, 16), { color: PALETTE.terra, roughness: 0.62 }, 'lab', {
-      pos: [1.38, 1.085, 0.36], keepLine: 0.08
+    // Open ceramic vessel, with a visible wall thickness and an original handle.
+    const mugProfile = [[0,0],[0.055,0],[0.064,0.012],[0.068,0.13],[0.058,0.13],[0.054,0.018],[0,0.018]]
+      .map(([x,y]) => new THREE.Vector2(x,y));
+    addArchMesh(benchGroup, new THREE.LatheGeometry(mugProfile, 32), { color: PALETTE.terra, roughness: 0.72 }, 'lab', {
+      pos: [1.38, 1.02, 0.36], sketchEdges: false
+    });
+    addArchMesh(benchGroup, new THREE.TorusGeometry(0.043, 0.009, 10, 22), { color: PALETTE.terra, roughness: 0.72 }, 'lab', {
+      pos: [1.45, 1.086, 0.36], sketchEdges: false
     });
 
     // ==================== 3. WORK ARCHIVE (NORTH GALLERY WALL — WALL LIFT EXHIBITS) ====================
@@ -823,8 +864,8 @@
       g.position.set(xPos, 2.38, -5.22);
       archiveGroup.add(g);
 
-      // Deep Walnut Museum Frame
-      addArchMesh(g, new THREE.BoxGeometry(2.58, 1.76, 0.12), { map: textures.walnut, color: 0x8E715F, roughness: 0.58 }, zoneKey, {
+      // Deep walnut museum frame, with a dark thin reveal and ivory matting.
+      addArchMesh(g, new THREE.BoxGeometry(2.58, 1.76, 0.12), { map: textures.walnut, color: 0xA58D73, roughness: 0.73 }, zoneKey, {
         interactId, interactZone: zoneKey, keepLine: 0.16
       });
       // Recessed Matting
@@ -852,6 +893,12 @@
         keepLine: 0
       });
 
+      // Brass-toned, small-scale gallery plaque; title texture is existing work art,
+      // not an invented product screenshot.
+      addArchMesh(g, new THREE.BoxGeometry(0.58, 0.082, 0.025),
+        { color: PALETTE.ochre, roughness: 0.67, metalness: 0.25 }, null, {
+          pos: [-0.81, -1.02, -0.005], sketchEdges: false
+        });
       // Architectural Floor Alignment Marker for Wall Lift
       const liftRing = new THREE.Mesh(
         new THREE.RingGeometry(0.26, 0.30, 32),
@@ -977,9 +1024,10 @@
         }
         const r = THREE.MathUtils.clamp(zone.value, 0, 1);
         zone.items.forEach((item) => {
-          item.mat.color.copy(sketchColor).lerp(item.baseColor, r);
+          // Preserve intentional material/color hierarchy even in unexplored zones.
+          item.mat.color.copy(sketchColor).lerp(item.baseColor, 0.68 + 0.32 * r);
           if (item.edges) {
-            item.edges.material.opacity = THREE.MathUtils.lerp(0.74, item.keepLine, r);
+            item.edges.material.opacity = THREE.MathUtils.lerp(0.40, item.keepLine * 0.75, r);
           }
         });
       });
