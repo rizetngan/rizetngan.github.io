@@ -497,10 +497,10 @@
     renderer.toneMappingExposure = 1.12;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xE8E5DA);
-    scene.fog = new THREE.FogExp2(0xE8E5DA, 0.006);
+    scene.background = new THREE.Color(0xF2EFE5);
+    scene.fog = new THREE.FogExp2(0xF2EFE5, 0.008);
 
-    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 80);
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 320);
     const textures = createTextures();
 
     // Lighting — Soft natural architectural daylight + warm bench lamp
@@ -602,25 +602,25 @@
     // A real *object* instead of an infinite CGI floor: the studio sits on a
     // carefully finished architectural model plinth with a visible cut edge.
     const plinthMat = new THREE.MeshStandardMaterial({ color: 0xB9A88D, roughness: 0.92 });
-    const plinth = new THREE.Mesh(roundedSlab(14.8,21.0,.34,.18), plinthMat);
-    plinth.position.set(0, -0.23, 3.0);
+    const plinth = new THREE.Mesh(roundedSlab(14.2,19.3,.34,.18), plinthMat);
+    plinth.position.set(0, -0.23, 2.4);
     plinth.castShadow = true;
     plinth.receiveShadow = true;
     archGroup.add(plinth);
-    const plinthFoot = new THREE.Mesh(roundedSlab(15.0,21.2,.045,.19), new THREE.MeshStandardMaterial({ color: 0x777064, roughness: 0.74 }));
-    plinthFoot.position.set(0, -0.43, 3.0);
+    const plinthFoot = new THREE.Mesh(roundedSlab(14.4,19.5,.045,.19), new THREE.MeshStandardMaterial({ color: 0x777064, roughness: 0.74 }));
+    plinthFoot.position.set(0, -0.43, 2.4);
     archGroup.add(plinthFoot);
-    const presentationGround = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshStandardMaterial({ color: 0xD8D5C9, roughness: 1.0 }));
+    const presentationGround = new THREE.Mesh(new THREE.PlaneGeometry(650, 650), new THREE.MeshStandardMaterial({ color: 0xD8D5C9, roughness: 1.0 }));
     presentationGround.rotation.x = -Math.PI / 2;
     presentationGround.position.y = -0.58;
     presentationGround.receiveShadow = true;
     archGroup.add(presentationGround);
     // Fine brass shadow gap gives a jewelry-like edge without game decoration.
-    const inlay = new THREE.Mesh(new THREE.BoxGeometry(14.65, 0.018, 20.85), new THREE.MeshStandardMaterial({ color: 0xA58D73, metalness: 0.33, roughness: 0.7 }));
-    inlay.position.set(0, -0.043, 3.0);
+    const inlay = new THREE.Mesh(roundedSlab(14.03,19.10,.018,.15), new THREE.MeshStandardMaterial({ color: 0xA58D73, metalness: 0.33, roughness: 0.7 }));
+    inlay.position.set(0, -0.043, 2.4);
     archGroup.add(inlay);
 
-    const floorGeo = new THREE.PlaneGeometry(14.6, 20.8);
+    const floorGeo = new THREE.PlaneGeometry(14.0, 19.05);
     const floorMat = new THREE.MeshStandardMaterial({
       map: textures.limestone,
       color: 0xF4EDE0,
@@ -629,7 +629,7 @@
     });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
     floorMesh.rotation.x = -Math.PI / 2;
-    floorMesh.position.set(0, 0, 3.0);
+    floorMesh.position.set(0, 0, 2.4);
     floorMesh.receiveShadow = true;
     floorMesh.name = 'StudioFloor';
     archGroup.add(floorMesh);
@@ -654,9 +654,15 @@
       pos: [-6.6, 2.4, -0.5], castShadow: false, keepLine: 0.08, cameraBlocker: true
     });
     // East Wall (x = +6.6)
-    addArchMesh(archGroup, new THREE.BoxGeometry(0.35, 4.8, 12.0), { map: textures.plaster, color: 0xDED6C3 }, 'about', {
-      pos: [6.6, 2.4, -0.5], castShadow: false, keepLine: 0.08, cameraBlocker: true
+    addArchMesh(archGroup, new THREE.BoxGeometry(0.35, 4.8, 6.5), { map: textures.plaster, color: 0xDED6C3 }, 'about', {
+      pos: [6.6, 2.4, -3.25], castShadow: false, keepLine: 0.08, cameraBlocker: true
     });
+    // A low cutaway wing on the viewing side reveals the living studio.
+    addArchMesh(archGroup,new THREE.BoxGeometry(.35,1.18,5.5),
+      {map:textures.plaster,color:0xC8C2AB,roughness:.95},null,
+      {pos:[6.6,.59,2.75],castShadow:false,sketchEdges:false,cameraBlocker:true});
+    addArchMesh(archGroup,roundedSlab(.40,5.5,.08,.06),
+      {color:0xA58D72,roughness:.86},null,{pos:[6.6,1.22,2.75],sketchEdges:false});
 
     // Rear exhibit wall is articulated as two painted clay bays in a quiet sage shell.
     // Front face stays behind the product plates and preserves their existing lift anchors.
@@ -669,7 +675,7 @@
     });
     // A tactile continuous arch and a smaller curved reveal create a memorable silhouette.
     const heroArch=addArchMesh(archGroup,archGeometry(4.5,1.78,.38,.58),
-      {color:0xBE765A,map:textures.clay,roughness:.93},null,
+      {color:0xD9B4A0,map:textures.clay,roughness:.93},null,
       {pos:[0,0,7.45],cameraBlocker:true,sketchEdges:false});
     addArchMesh(archGroup,archGeometry(4.5,1.78,.065,.022),
       {color:0xE3CBA9,roughness:.84},null,{pos:[0,0,8.035],sketchEdges:false});
@@ -746,6 +752,30 @@
     addArchMesh(benchGroup,roundedSlab(1.34,.50,.012,.045),
       {color:0x65796D,roughness:.94},null,{pos:[-.09,1.023,.12],castShadow:false,sketchEdges:false});
 
+    // A compact bent-plywood chair, tucked into the back of the bench.
+    // The seat and curved back are custom lofted profiles, with exposed timber edges.
+    const chair=new THREE.Group();chair.position.set(-1.50,0,-1.36);benchGroup.add(chair);
+    const seat=addArchMesh(chair,roundedSlab(.48,.43,.045,.12),{color:0x986F49,roughness:.83},null,
+      {pos:[0,.48,0],sketchEdges:false});
+    seat.rotation.x=-.045;
+    const back=addArchMesh(chair,(() => {const g=roundedSlab(.48,.39,.045,.10);g.rotateX(Math.PI/2);return g;})(),
+      {color:0x986F49,roughness:.83},null,{pos:[0,.78,-.18],rot:[-.16,0,0],sketchEdges:false});
+    for(const x of [-.17,.17])for(const z of [-.14,.14]){
+      const leg=addArchMesh(chair,new THREE.CylinderGeometry(.026,.018,.48,12),{color:0x46534A,roughness:.78},null,
+        {pos:[x,.24,z],sketchEdges:false});leg.rotation.z=x>0?-.10:.10;leg.rotation.x=z>0?.09:-.09;
+    }
+    for(const x of [-.16,.16])addArchMesh(chair,new THREE.CylinderGeometry(.021,.021,.38,12),
+      {color:0x46534A,roughness:.78},null,{pos:[x,.65,-.17],rot:[-.13,0,0],sketchEdges:false});
+    // Original study model on a small base beside the drafting pad.
+    const study=new THREE.Group();study.position.set(-1.66,1.02,-.65);benchGroup.add(study);
+    addArchMesh(study,roundedSlab(.60,.46,.034,.035),{color:0xC4B69E,roughness:.90},null,
+      {pos:[0,.017,0],sketchEdges:false});
+    addArchMesh(study,new THREE.BoxGeometry(.18,.20,.27),{color:0xE2D7BD,roughness:.94},null,
+      {pos:[-.14,.134,0],sketchEdges:false});
+    addArchMesh(study,new THREE.BoxGeometry(.20,.11,.22),{color:0x7C8C7A,roughness:.93},null,
+      {pos:[.09,.089,.025],sketchEdges:false});
+    addArchMesh(study,new THREE.BoxGeometry(.24,.035,.29),{color:0xA65D46,roughness:.88},null,
+      {pos:[-.14,.252,0],sketchEdges:false});
     // Auto Mount Subtle Architectural Floor Bracket at Front of Bench (x=0, z=1.42)
     const mountRingGeo = new THREE.RingGeometry(0.24, 0.28, 32);
     const mountRingMat = new THREE.MeshBasicMaterial({ color: PALETTE.terra, transparent: true, opacity: 0.52, side: THREE.DoubleSide });
