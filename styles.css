@@ -1362,3 +1362,11 @@ button {
   .exhibit-preview { bottom: 85px; left: 18px; right: 18px; }
   .bottom-bar { display: none; }
 }
+
+/* V7 — quieter editorial chrome during immersive exploration. */
+.viewport.is-mouse-captured #atelierCanvas { cursor: none; }
+.atelier-shell.is-mini .chapter-dots { visibility: hidden; }
+.atelier-shell.is-mini .canvas-vignette { background: radial-gradient(ellipse at center, transparent 75%, rgba(34,39,35,.055) 100%); }
+.atelier-shell.is-mini .canvas-grain { opacity: .018; }
+.atelier-shell.is-mini .context-prompt { background: rgba(246,242,234,.94); border: 1px solid rgba(40,47,42,.14); box-shadow: 0 7px 24px rgba(25,30,27,.08); }
+.atelier-shell.is-mini .bottom-bar { padding-bottom: 19px; }
