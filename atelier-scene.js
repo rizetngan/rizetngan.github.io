@@ -102,7 +102,7 @@
         const canvas = texture.image;
         draw(canvas.getContext('2d'), canvas.width, canvas.height, img);
         texture.needsUpdate = true;
-        texture.userData.sourceLoaded = true;
+        texture.sourceLoaded = true;
       };
       img.src = url;
       return texture;
@@ -996,7 +996,7 @@
       mountMarker,
       terraSphere,
       zoneRevealState,
-      getAssetStatus: () => ({ actape: !!textures.actapeArt.userData.sourceLoaded, snug: !!textures.snugArt.userData.sourceLoaded, phone: !!textures.phoneScreen.userData.sourceLoaded }),
+      getAssetStatus: () => ({ actape: !!textures.actapeArt.sourceLoaded, snug: !!textures.snugArt.sourceLoaded, phone: !!textures.phoneScreen.sourceLoaded }),
       updateSketchReveal
     };
   }
