@@ -13,3 +13,5 @@ body,.atelier-shell{background:#242825}
 .studio-loader{position:fixed;inset:0;z-index:999;display:grid;align-content:center;justify-items:center;gap:12px;background:#242825;color:#c7c6b8;font:12px system-ui;letter-spacing:.08em;transition:opacity .5s,visibility .5s;pointer-events:none}.studio-loader-mark{font:44px Georgia,serif;color:#eae7e0;letter-spacing:-.05em}.studio-ready .studio-loader,.studio-fallback .studio-loader{opacity:0;visibility:hidden}
 @media(max-width:768px){.site-header{padding-top:16px}.main-nav{display:none!important}.entrance-hero::before{background:linear-gradient(0deg,rgba(23,27,23,.94),transparent)!important}.bottom-right .control-hint{display:none}.mode-toggle{max-width:150px}}
 @media(prefers-reduced-motion:reduce){.studio-loader{transition:none}}
+
+.atelier-shell.is-mini .bottom-right .control-hint{display:none}.atelier-shell.is-mini .bottom-right{padding:0;border:0;background:transparent!important}.atelier-shell.is-mini .bottom-right .icon-btn{background:#242825cc;border-color:#eae7e033}.entrance-hero .btn-link{display:none}.entrance-hero .hero-kicker{display:none}

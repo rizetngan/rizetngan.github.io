@@ -1236,10 +1236,10 @@
       const envTex=new THREE.CanvasTexture(envCanvas);envTex.mapping=THREE.EquirectangularReflectionMapping;envTex.encoding=THREE.sRGBEncoding;
       const pmrem=new THREE.PMREMGenerator(renderer);scene.environment=pmrem.fromEquirectangular(envTex).texture;envTex.dispose();pmrem.dispose();
       scene.background.set(0x242825).convertSRGBToLinear();scene.fog.color.copy(scene.background);scene.fog.density=.003;
-      renderer.toneMappingExposure=1.12;
-      hemi.intensity=.86;hemi.color.set(0xF6EBD8);hemi.groundColor.set(0x928777);
-      sun.intensity=1.68;sun.position.set(-11,5.8,4.5);sun.color.set(0xFFE2B7);
-      fillLight.intensity=.72;fillLight.position.set(3.7,5,6.5);fillLight.color.set(0xDEE8E4);
+      renderer.toneMappingExposure=0.96;
+      hemi.intensity=.64;hemi.color.set(0xF6EBD8);hemi.groundColor.set(0x928777);
+      sun.intensity=1.45;sun.position.set(-11,4.8,4.6);sun.color.set(0xFFE2B7);
+      fillLight.intensity=.45;fillLight.position.set(3.7,5,6.5);fillLight.color.set(0xDEE8E4);
       deskLampLight.position.set(1.44,1.82,-.57);deskLampLight.intensity=.65;
       model.traverse(o=>{
         if(!o.isMesh)return;
@@ -1254,7 +1254,10 @@
         else if(name.startsWith('ABOUT'))id='about';
         if(id){o.userData.interactId=id;o.userData.interactZone=name.startsWith('LAB_')?'lab':id;interactables.push(o);}
         // No added outlines or stylized reveal; materials are the authored GLB.
-        if(o.material&&o.material.isMeshStandardMaterial)o.material.envMapIntensity=.7;
+        if(o.material&&o.material.isMeshStandardMaterial){
+          o.material.envMapIntensity=.62;
+          if(o.material.name.includes('Smoked walnut'))o.material.color.set(0xC7B6A0).convertSRGBToLinear();
+        }
       });
       const windowGuard=new THREE.Mesh(new THREE.BoxGeometry(.06,3.45,5.75),new THREE.MeshBasicMaterial({visible:false}));
       windowGuard.position.set(-6.6,2.67,2.65);model.add(windowGuard);cameraColliders.push(windowGuard);

@@ -202,13 +202,13 @@ def area(name,p,target,energy,color,size,shape='DISK',size_y=None):
     if size_y is not None:d.size_y=size_y
     o=bpy.data.objects.new(name,d);bpy.context.collection.objects.link(o);o.location=V(*p)
     o.rotation_euler=(Vector(V(*target))-o.location).to_track_quat('-Z','Y').to_euler();return o
-area('Window key',(-7.15,3.4,2.7),(0,1.1,0),1500,(1,.79,.56),5.2,'RECTANGLE',3.4)
+area('Window key',(-7.15,3.4,2.7),(0,1.1,0),1000,(1,.79,.56),5.2,'RECTANGLE',3.4)
 area('Soft ceiling bounce',(1.2,4.5,2.8),(0,1.2,-.3),185,(.74,.82,1),4)
 area('Warm desk practical',(1.44,1.83,-.57),(1.3,1.04,-.48),22,(1,.65,.34),.35)
 area('Archive key',(-.4,4.5,-2.6),(0,2.1,-5),230,(1,.82,.62),3.8)
 area('Camera fill',(3.3,3.6,5.3),(0,1.4,0),100,(.9,.94,1),4)
-sun_data=bpy.data.lights.new('Afternoon sun','SUN');sun_data.energy=1.25;sun_data.angle=.075;sun_data.color=(1,.75,.5)
-sun=bpy.data.objects.new('Afternoon sun',sun_data);bpy.context.collection.objects.link(sun);sun.rotation_euler=Vector((1,.2,-.55)).to_track_quat('-Z','Y').to_euler()
+sun_data=bpy.data.lights.new('Afternoon sun','SUN');sun_data.energy=2.0;sun_data.angle=.055;sun_data.color=(1,.75,.5)
+sun=bpy.data.objects.new('Afternoon sun',sun_data);bpy.context.collection.objects.link(sun);sun.rotation_euler=Vector((1,.42,-.38)).to_track_quat('-Z','Y').to_euler()
 sc=bpy.context.scene;sc.world=bpy.data.worlds.new('Muted studio world');sc.world.use_nodes=True
 sc.world.node_tree.nodes['Background'].inputs['Color'].default_value=(.22,.25,.23,1);sc.world.node_tree.nodes['Background'].inputs['Strength'].default_value=.45
 camdata=bpy.data.cameras.new('Editorial camera');cam=bpy.data.objects.new('Editorial camera',camdata);bpy.context.collection.objects.link(cam);sc.camera=cam
@@ -237,10 +237,25 @@ for im in bpy.data.images:
         try:im.pack()
         except Exception:pass
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'atelier-g5.blend'))
-# Export the authored mesh collection using the official glTF exporter.
+# Merge static renderables by semantic category and material. Keep collision
+# meshes separate, so existing picking, floor bounds and interaction remain.
+# Editable .blend is saved before merge; the runtime asset needs far fewer draws.
+buckets={}
+for obj in list(bpy.data.objects):
+    if obj.type!='MESH' or obj.name=='CEILING' or obj.name.startswith('COL_'):continue
+    tag=next((k for k in ('LAB_Actape','LAB_Snug','ACTAPE','SNUG','NOTES','ABOUT') if obj.name.startswith(k)),'STATIC')
+    material=obj.data.materials[0].name if obj.data.materials else 'none'
+    buckets.setdefault((tag,material),[]).append(obj)
+for (tag,material),objects in buckets.items():
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj in objects:obj.select_set(True)
+    bpy.context.view_layer.objects.active=objects[0]
+    if len(objects)>1:bpy.ops.object.join()
+    bpy.context.object.name=tag+'_'+material
 bpy.ops.object.select_all(action='DESELECT')
 for obj in bpy.data.objects:
     if obj.type=='MESH' and obj.name!='CEILING':obj.select_set(True)
+print('RUNTIME_MESHES',len(bpy.context.selected_objects),flush=True)
 bpy.ops.export_scene.gltf(filepath=str(OUT/'studio.glb'),export_format='GLB',use_selection=True,export_animations=False)
 print('GLB', (OUT/'studio.glb').stat().st_size,flush=True)
 def render(name,p,look,lens,w,h):
@@ -250,7 +265,7 @@ def render(name,p,look,lens,w,h):
     except RuntimeError:
         sc.cycles.device='CPU';bpy.ops.render.render(write_still=True)
     print('RENDERED',name,(OUT/(name+'.jpg')).stat().st_size,flush=True)
-render('hero',(2.8,2.28,4.35),(.10,1.45,-.18),48,1500,1040)
+render('hero',(3.7,2.38,3.85),(.10,1.45,-.15),43,1500,1040)
 render('studio',(4.8,3.1,6.7),(-1.0,1.5,-.9),30,1280,900)
-render('actape',(-.82,2.68,-.95),(-2.12,2.38,-5.0),54,1120,840)
-render('snug',(3.00,2.85,-1.22),(2.12,2.35,-5.0),60,1120,840)
+render('actape',(-.82,2.64,-.40),(-2.12,2.10,-5.0),43,1120,840)
+render('snug',(3.16,2.76,-.65),(2.12,2.19,-5.0),43,1120,840)
