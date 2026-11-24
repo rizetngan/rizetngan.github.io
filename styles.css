@@ -1370,3 +1370,8 @@ button {
 .atelier-shell.is-mini .canvas-grain { opacity: .018; }
 .atelier-shell.is-mini .context-prompt { background: rgba(246,242,234,.94); border: 1px solid rgba(40,47,42,.14); box-shadow: 0 7px 24px rgba(25,30,27,.08); }
 .atelier-shell.is-mini .bottom-bar { padding-bottom: 19px; }
+
+.product-image { margin: 30px 0; padding: 22px; background: #e5e4da; border: 1px solid rgba(40,51,47,.12); }
+.product-image img { display: block; width: auto; max-width: 100%; max-height: 65vh; margin: auto; object-fit: contain; }
+.product-image figcaption { margin-top: 12px; font-size: 11px; color: #686e64; text-align: center; }
+.atelier-shell.is-mini .bottom-left .zone-name, .atelier-shell.is-mini .bottom-right { background: rgba(246,242,234,.85); }
