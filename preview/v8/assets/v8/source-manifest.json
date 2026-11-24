@@ -1,0 +1,35 @@
+[
+  {
+    "id": "potted_plant_04",
+    "name": "Potted Plant 04",
+    "author": {
+      "James Ray Cock": "All"
+    },
+    "license": "CC0",
+    "url": "https://polyhaven.com/a/potted_plant_04",
+    "bytes": 2119480,
+    "sha256": "fb7bf1ab634a7941e6082110a5ac8bb2f357c46e87ad6220035794066d618ec2"
+  },
+  {
+    "id": "book_encyclopedia_set_01",
+    "name": "Book Encyclopedia Set 01",
+    "author": {
+      "John Malcolm": "All"
+    },
+    "license": "CC0",
+    "url": "https://polyhaven.com/a/book_encyclopedia_set_01",
+    "bytes": 3236272,
+    "sha256": "230b41f6af9153ba16070eda6d3527bd2d90ca5d723ceb6a162dff8fa68457c1"
+  },
+  {
+    "id": "binder_notebook",
+    "name": "Binder Notebook",
+    "author": {
+      "DaDrood": "All"
+    },
+    "license": "CC0",
+    "url": "https://polyhaven.com/a/binder_notebook",
+    "bytes": 1887996,
+    "sha256": "63f4013adc2bfdbb7f43b6fb1ed9b9bf40d9906d2b8ae20daeef7cbef78429c1"
+  }
+]

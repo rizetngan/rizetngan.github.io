@@ -1,0 +1,1 @@
+{"release": "V8.1", "sourceCommit": "39b1e91338a1601e3e255e8e61312a2328e46c3e", "baseline": "377ca8741c1f7e3e4a9eeddb641573d0ec980989", "render": "single realtime Three.js scene with Cycles proxy baked AO/indirect"}
