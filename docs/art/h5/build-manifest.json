@@ -1,0 +1,30 @@
+{
+  "v8-exact-reference.glb": {
+    "bytes": 16301324,
+    "sha256": "4be0cdcfe5b746d2473cdcec943fc432fd0e5d6d61ca233c4ca14d936030f794"
+  },
+  "h5-exact-bake-pilot.blend": {
+    "bytes": 11317174,
+    "sha256": "928c538b037e0b7a3679aa806d453987e0922b048cf24b12fbebc8d9c8717ace"
+  },
+  "exact-desk.glb": {
+    "bytes": 75468,
+    "sha256": "7c09ce3339c07e42bab2f1cf92b2feeffd86833021f86c466f1fa998a9e3df8c"
+  },
+  "exact-desk-ao.png": {
+    "bytes": 141630,
+    "sha256": "f1ea2570ace02e04bd25056830d491569ee1d434c6b38afd47b4c0f6beb47a80"
+  },
+  "exact-desk-indirect.png": {
+    "bytes": 253945,
+    "sha256": "dc53e9932bf3d134f85e81426cd1b8d65b57fae886d29adb941b71cc8e8e6fb9"
+  },
+  "exact-desk-ao.exr": {
+    "bytes": 3154319,
+    "sha256": "0897654c1461d6855b4d089c2ebcecaebdb93b21392538d5a6391d4d5a3091f7"
+  },
+  "exact-desk-indirect.exr": {
+    "bytes": 3154319,
+    "sha256": "0a239fcf07fc0805db4e7b6544c6326f369f28c79849aac0878d768177e345d4"
+  }
+}
