@@ -66,3 +66,7 @@ See [QA_REPORT_V72.md](QA_REPORT_V72.md) for the new cutaway architecture, autho
 ### E2 — Illustrated Atelier
 
 [Production standards and source register](DESIGN_SYSTEM_E2.md) · [Real-input QA and screenshots](QA_REPORT_E2.md). Native pointer capture verified in headed Chrome. Final visual approval and release remain pending.
+
+### E2.3 — Blender production
+
+[Original Blender asset generator](tools/build-e2-models.py) · [E2.3 QA with actual render evidence](QA_REPORT_E23.md). Native 360° and rear-wall sweep verified; main unchanged.

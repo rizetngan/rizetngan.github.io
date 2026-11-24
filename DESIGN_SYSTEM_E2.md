@@ -16,3 +16,6 @@ Poly Haven CC0:
 - https://polyhaven.com/a/painted_wooden_chair_01 — painted chair model, 1024 vertices, 724 triangles; original bin MD5 7fd011acaef4730770108a7932191768. Original diffuse MD5 94c34f4a211eec5bd30017564e09be4c, resampled to 512px and desaturated; simplified matte glTF material. Model hidden fallback only after successful load.
 - User's Actape and Snug project images from V7 retained. Monitor now displays Actape reference rather than slogan.
 This increment is a textured vertical slice, not completed Blender asset set or final E2 visual approval.
+
+## E2.3 Blender production
+Blender 5.1.2 now runs in an isolated production environment. `tools/build-e2-models.py` produces editable .blend files and two actual GLBs; use `ATELIER_BUILD_DIR` to select the output location. The mini has a skin with five bones and rigid per-piece weights, driven by the existing tested articulation; finer cloth deformation remains an art refinement. Both runtime GLBs are local and hash-verified. See QA_REPORT_E23.md.
