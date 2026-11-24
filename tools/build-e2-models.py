@@ -46,6 +46,7 @@ def mesh(name,verts,faces,m,smooth=False):
     return finish(o,name,m,smooth=smooth)
 def export(name):
     # Blender glTF export with no compression/extensions required by older Three.js.
+    bpy.context.preferences.filepaths.save_version=0
     bpy.ops.wm.save_as_mainfile(filepath=str(OUT/(name+'.blend')))
     bpy.ops.export_scene.gltf(filepath=str(OUT/(name+'.glb')),export_format='GLB',export_animations=False)
     print('EXPORTED',name,(OUT/(name+'.glb')).stat().st_size,flush=True)
@@ -96,7 +97,7 @@ def character():
         for k in range(len(sections)-1):
             for i in range(n):j=(i+1)%n;faces.append((k*n+i,k*n+j,(k+1)*n+j,(k+1)*n+i))
         faces.append(tuple((len(sections)-1)*n+i for i in range(n)))
-        o=mesh(name,verts,faces,m,True);return record(o,bone)
+        o=mesh(name,verts,[tuple(reversed(f)) for f in faces],m,True);return record(o,bone)
     def detail(name,loc,size,m,bone='Root',bevel=.0018):return record(box(name,loc,size,m,bevel),bone)
     for x,b in [(-.041,'LegL'),(.041,'LegR')]:
         loft('Tailored trouser',[(.029,x,0,.027,.025),(.06,x,0,.028,.027),(.15,x,-.006,.033,.028),(.23,x,0,.037,.034),(.30,x,0,.039,.035)],pants,b)
