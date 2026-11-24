@@ -1375,3 +1375,20 @@ button {
 .product-image img { display: block; width: auto; max-width: 100%; max-height: 65vh; margin: auto; object-fit: contain; }
 .product-image figcaption { margin-top: 12px; font-size: 11px; color: #686e64; text-align: center; }
 .atelier-shell.is-mini .bottom-left .zone-name, .atelier-shell.is-mini .bottom-right { background: rgba(246,242,234,.85); }
+
+/* V7.2 — an editorial spread: typography on the left, model on the right. */
+@media(min-width:769px){
+  .entrance-hero{left:clamp(30px,6.4vw,112px);top:47%;width:min(32vw,440px);transform:translateY(-40%);}
+  .entrance-hero::before{background:none;}
+  .hero-kicker{margin-bottom:24px;letter-spacing:.18em;}
+  .entrance-hero h1{font-size:clamp(38px,4.55vw,72px);line-height:1.13;margin-bottom:23px;letter-spacing:-.055em;}
+  .hero-sub{font-size:13px;margin-bottom:29px;}
+  .hero-actions{gap:13px;}
+  .hero-actions .btn-link{flex-basis:100%;padding-top:4px;}
+  .canvas-vignette{background:radial-gradient(ellipse at 55% 48%,transparent 68%,rgba(47,44,36,.065) 100%);}
+  .spatial-card::before{background:radial-gradient(ellipse at center,rgba(239,235,228,.67),transparent 74%);}
+}
+.atelier-shell.is-entered .spatial-card p{display:none;}
+.atelier-shell.is-entered .card-meta{margin-bottom:10px;}
+.atelier-shell.is-entered .card-actions{margin-top:12px;}
+@media(max-width:768px){.entrance-hero h1{font-size:clamp(36px,9vw,49px);}.hero-kicker{margin-bottom:12px;}.hero-sub{margin-bottom:13px;}.entrance-hero::before{background:linear-gradient(0deg,rgba(239,235,228,.91),rgba(239,235,228,.43) 60%,transparent);}}
