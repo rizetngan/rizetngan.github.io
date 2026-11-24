@@ -165,8 +165,8 @@
       title: '入口前厅',
       zoneLabel: 'ENTRANCE',
       desc: '柔和自然光落入暖石前厅。向下滚动或点击空间，沿建筑走廊走入工坊。',
-      camPos: new THREE.Vector3(0, 2.35, 12.6),
-      camLook: new THREE.Vector3(0, 1.45, 3.0),
+      camPos: new THREE.Vector3(9.3, 7.7, 17.8),
+      camLook: new THREE.Vector3(-1.9, 0.75, 3.6),
       spawnPos: new THREE.Vector3(0, 0, 8.6),
       contentId: 'about',
       revealZone: 'entrance'
@@ -177,8 +177,8 @@
       title: '建筑探索走廊',
       zoneLabel: 'THE CORRIDOR',
       desc: '建筑线稿随距离逐步显影为石材与胡桃木，连接中央工作台与四周展区。',
-      camPos: new THREE.Vector3(0.45, 2.15, 7.1),
-      camLook: new THREE.Vector3(0, 1.25, -1.2),
+      camPos: new THREE.Vector3(0.24, 1.75, 9.65),
+      camLook: new THREE.Vector3(0.1, 1.24, -0.8),
       spawnPos: new THREE.Vector3(0, 0, 4.8),
       contentId: 'lab',
       revealZone: 'corridor'
@@ -189,8 +189,8 @@
       title: '原型工作台',
       zoneLabel: 'PROTOTYPE BENCH',
       desc: '空间的视觉核心：胡桃木工作台、显示器、竖屏设备与建筑草图。按 F 可让 Mini 角色跃上桌面。',
-      camPos: new THREE.Vector3(2.45, 2.45, 3.35),
-      camLook: new THREE.Vector3(-0.1, 1.18, -0.15),
+      camPos: new THREE.Vector3(3.5, 2.8, 4.4),
+      camLook: new THREE.Vector3(-0.25, 1.14, -0.10),
       spawnPos: new THREE.Vector3(0, 0, 2.35),
       contentId: 'lab',
       revealZone: 'lab'
@@ -201,8 +201,8 @@
       title: '作品档案厅',
       zoneLabel: 'WORK ARCHIVE',
       desc: '收录独立作品 Actape 与 Snug for Windows。点击展框打开详情，或在 Mini 模式下靠近展墙悬浮预览。',
-      camPos: new THREE.Vector3(0, 2.25, -0.55),
-      camLook: new THREE.Vector3(0, 2.02, -5.2),
+      camPos: new THREE.Vector3(0, 3.02, 0.75),
+      camLook: new THREE.Vector3(0, 2.14, -5.2),
       spawnPos: new THREE.Vector3(0, 0, -2.5),
       contentId: 'actape',
       revealZone: 'actape'
@@ -335,8 +335,8 @@
     desiredCamLook: CHAPTERS[0].camLook.clone(),
     orbitYaw: 0,
     orbitPitch: 0.40, // ~23° relaxed eye-level exploration; adjustable from 4° to 75°
-    orbitDist: 3.85, // user-requested camera arm length; does not change on collision
-    collisionDist: 3.85, // actual arm length after architectural obstruction
+    orbitDist: 3.15, // user-requested camera arm length; does not change on collision
+    collisionDist: 3.15, // actual arm length after architectural obstruction
     focusReturn: null, // saved user-selected view before cinematic exhibit framing
     pointerId: null,
     mouseCaptured: false,
@@ -556,7 +556,7 @@
     STATE.targetYaw = STATE.charYaw;
     STATE.orbitYaw = STATE.charYaw - Math.PI;
     STATE.orbitPitch = 0.40; // ~23° natural follow, never forced back after interacting
-    STATE.orbitDist = 3.85;
+    STATE.orbitDist = 3.15;
     STATE.collisionDist = STATE.orbitDist;
 
     world.miniCharacter.group.position.copy(STATE.charPos);
@@ -839,6 +839,19 @@
       else if (m === dxL) p.x = minX;
       else p.x = maxX;
     }
+
+    // Architectural arch feet, timber screen and low wing. The visual model and
+    // floor traversal use the same footprint, with a small body radius.
+    const archObstacles = [
+      [-2.77,-2.08,7.28,8.21],[2.08,2.77,7.28,8.21],
+      [3.26,3.64,6.02,8.42],[-3.96,-3.28,7.70,10.31],
+      [-2.55,-1.25,8.88,9.62]
+    ];
+    archObstacles.forEach(([l,r,b,f])=>{
+      if(p.x<=l||p.x>=r||p.z<=b||p.z>=f)return;
+      const gaps=[p.x-l,r-p.x,p.z-b,f-p.z], k=gaps.indexOf(Math.min(...gaps));
+      if(k===0)p.x=l;else if(k===1)p.x=r;else if(k===2)p.z=b;else p.z=f;
+    });
 
     // Lectern & Plinth small obstacles
     const pillars = [
@@ -1154,7 +1167,7 @@
       e.preventDefault();
       STATE.orbitYaw = STATE.charYaw - Math.PI;
       STATE.orbitPitch = 0.40;
-      STATE.orbitDist = 3.85;
+      STATE.orbitDist = 3.15;
       return;
     }
 
