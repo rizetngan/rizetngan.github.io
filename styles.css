@@ -1399,3 +1399,11 @@ button {
 .atelier-shell.is-mini .context-prompt{border-radius:3px;box-shadow:0 3px 14px rgba(43,39,32,.09);}
 .atelier-shell.is-mini .bottom-right{background:rgba(242,238,228,.84);}
 @media(max-width:768px){.atelier-shell.is-entered .main-nav{padding:0;background:transparent;backdrop-filter:none;}}
+
+/* E2.4 — quiet editorial overlays, a preview is the full experience, not a dev dashboard. */
+.atelier-shell.is-mini .bottom-left{display:none;}
+.atelier-shell.is-mini .context-prompt:not(.visible){display:none;}
+.atelier-shell.is-mini .context-prompt.visible{max-width:min(90vw,360px);}
+.atelier-shell.is-mini .canvas-grain{opacity:.012;}
+.atelier-shell.is-entered .main-nav{background:rgba(242,238,228,.94);box-shadow:0 1px 12px rgba(38,35,28,.06);}
+@media(max-width:768px){.atelier-shell.is-entered .main-nav{background:transparent;box-shadow:none;}}

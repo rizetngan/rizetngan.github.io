@@ -165,8 +165,8 @@
       title: '入口前厅',
       zoneLabel: 'ENTRANCE',
       desc: '柔和自然光落入暖石前厅。向下滚动或点击空间，沿建筑走廊走入工坊。',
-      camPos: new THREE.Vector3(15.2, 11.0, 23.0),
-      camLook: new THREE.Vector3(-2.8, 1.2, 3.6),
+      camPos: new THREE.Vector3(15.9, 11.9, 23.8),
+      camLook: new THREE.Vector3(-2.7, 1.25, 3.6),
       spawnPos: new THREE.Vector3(0, 0, 8.6),
       contentId: 'about',
       revealZone: 'entrance'
@@ -873,7 +873,7 @@
     const archObstacles = [
       [-3.60,-2.08,7.28,8.21],[2.08,3.60,7.28,8.21],
       [3.26,3.64,6.02,8.42],[-3.96,-3.28,7.70,10.31],
-      [-2.55,-1.25,8.88,9.62],[-6.0,-5.36,.32,4.84]
+      [-2.55,-1.25,8.88,9.62],[-6.0,-5.36,.32,4.84],[-6.5,-3.35,7.25,8.16]
     ];
     archObstacles.forEach(([l,r,b,f])=>{
       if(p.x<=l||p.x>=r||p.z<=b||p.z>=f)return;

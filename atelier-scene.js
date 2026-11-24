@@ -478,7 +478,7 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 0.98;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xF2EFE5);
@@ -495,7 +495,7 @@
         ctx.clearRect(0,0,canvas.width,canvas.height);
         ctx.fillStyle=key==='plaster'?'#e8e1d2':'#997b60';
         ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.globalAlpha=key==='plaster'?.28:.50;
+        ctx.globalAlpha=key==='plaster'?.23:.28;
         ctx.drawImage(img,0,0,canvas.width,canvas.height);
         ctx.globalAlpha=1;
         target.needsUpdate=true; assetReady[key]=true;
@@ -516,10 +516,10 @@
     monitorImage.src='assets/actape-windows-preview.png';
 
     // Lighting — Soft natural architectural daylight + warm bench lamp
-    const hemi = new THREE.HemisphereLight(0xF6F4E8, 0x9A907A, 0.78);
+    const hemi = new THREE.HemisphereLight(0xF8F1DF, 0xA09680, 1.02);
     scene.add(hemi);
 
-    const sun = new THREE.DirectionalLight(0xFFF0D7, 1.68);
+    const sun = new THREE.DirectionalLight(0xFFF0D7, 1.12);
     sun.position.set(-12, 10, 5);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -535,7 +535,7 @@
     sun.shadow.radius = 3;
     scene.add(sun);
 
-    const fillLight = new THREE.DirectionalLight(0xD7E7EE, 0.45);
+    const fillLight = new THREE.DirectionalLight(0xE0E8E6, 0.52);
     fillLight.position.set(8, 6, -7);
     scene.add(fillLight);
 
@@ -613,7 +613,7 @@
     // Main honed limestone floor (walkable floor)
     // A real *object* instead of an infinite CGI floor: the studio sits on a
     // carefully finished architectural model plinth with a visible cut edge.
-    const plinthMat = new THREE.MeshStandardMaterial({ color: 0x8F6E52, roughness: 0.92 });
+    const plinthMat = new THREE.MeshStandardMaterial({ map:textures.walnut,color: 0xB7A085, roughness: 0.92 });
     const plinth = new THREE.Mesh(roundedSlab(14.2,18.1,.34,.18), plinthMat);
     plinth.position.set(0, -0.23, 1.8);
     plinth.castShadow = true;
@@ -625,8 +625,18 @@
     const presentationGround = new THREE.Mesh(new THREE.PlaneGeometry(650, 650), new THREE.MeshStandardMaterial({ color: 0xD8D5C9, roughness: 1.0 }));
     presentationGround.rotation.x = -Math.PI / 2;
     presentationGround.position.y = -0.58;
-    presentationGround.receiveShadow = true;
+    presentationGround.receiveShadow = false;
     archGroup.add(presentationGround);
+    // A soft studio contact shadow beneath the architectural object, distinct
+    // from the interior daylight shadows. The cutaway never casts a huge hard
+    // shadow across the page's editorial negative space.
+    const modelShadowTex=makeCanvasTexture(256,256,(ctx,w,h)=>{
+      const g=ctx.createRadialGradient(w*.5,h*.5,w*.23,w*.5,h*.5,w*.5);
+      g.addColorStop(0,'rgba(55,43,33,.36)');g.addColorStop(.66,'rgba(55,43,33,.19)');g.addColorStop(1,'rgba(55,43,33,0)');
+      ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    });
+    const modelShadow=new THREE.Mesh(new THREE.PlaneGeometry(22,26),new THREE.MeshBasicMaterial({map:modelShadowTex,transparent:true,depthWrite:false}));
+    modelShadow.rotation.x=-Math.PI/2;modelShadow.position.set(.45,-.575,2.15);archGroup.add(modelShadow);
     // Fine brass shadow gap gives a jewelry-like edge without game decoration.
     const inlay = new THREE.Mesh(roundedSlab(14.03,17.90,.018,.15), new THREE.MeshStandardMaterial({ color: 0xA58D73, metalness: 0.33, roughness: 0.7 }));
     inlay.position.set(0, -0.043, 1.8);
@@ -635,8 +645,8 @@
     const floorGeo = new THREE.PlaneGeometry(14.0, 17.85);
     const floorMat = new THREE.MeshStandardMaterial({
       map: textures.limestone,
-      color: 0xF4EDE0,
-      roughness: 0.89,
+      color: 0xE3D8C5,
+      roughness: 0.94,
       metalness: 0.02
     });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
@@ -749,6 +759,29 @@
     wallPart(.80,3.1,.50,-3.02,1.55,7.72);
     addArchMesh(archGroup,new THREE.BoxGeometry(.72,3.1,.50),{color:0xD0B49D,map:textures.plaster,roughness:.95},null,
       {pos:[3.02,1.55,7.72],cameraBlocker:true,sketchEdges:false});
+    // A connected entrance elevation. The left wing joins the existing
+    // west window wall to the arched doorway; the right is a deliberate cutaway.
+    const entranceStone={map:textures.plaster,color:0xE6D8BF,roughness:.96};
+    const entranceTrim={color:0x8B7155,roughness:.9};
+    const panel=(w,h,d,x,y,z,mat=entranceStone,block=true)=>addArchMesh(archGroup,new THREE.BoxGeometry(w,h,d),mat,null,{pos:[x,y,z],cameraBlocker:block,sketchEdges:false});
+    panel(.35,3.78,2.52,-6.6,1.89,6.76);
+    panel(3.18,.94,.42,-5.03,.47,7.72);
+    panel(3.18,.65,.42,-5.03,3.455,7.72);
+    panel(.35,2.2,.42,-6.44,2.04,7.72);
+    panel(.38,2.2,.42,-3.61,2.04,7.72);
+    const entranceGlass={color:0x3E5146,roughness:.87};
+    for(let i=0;i<4;i++)panel(.055,2.20,.09,-6.25+i*.82,2.04,7.93,entranceGlass,false);
+    for(const y of [.95,2.04,3.13])panel(2.66,.055,.09,-5.03,y,7.93,entranceGlass,false);
+    panel(2.87,.10,.60,-5.03,.97,7.72,entranceTrim,false);
+    panel(3.25,.15,.63,-5.03,3.80,7.72,entranceTrim,false);
+    const frontGlassGuard=new THREE.Mesh(new THREE.BoxGeometry(2.6,2.20,.08),new THREE.MeshBasicMaterial({visible:false}));
+    frontGlassGuard.position.set(-5.03,2.04,7.72);archGroup.add(frontGlassGuard);cameraColliders.push(frontGlassGuard);
+    // A row of hand-drawn construction joints, only on the exposed facade.
+    const seamMat=new THREE.LineBasicMaterial({color:0x6F6050,transparent:true,opacity:.21});
+    const seamPoints=[];
+    for(let y=.22;y<.88;y+=.22)seamPoints.push(new THREE.Vector3(-6.57,y,7.941),new THREE.Vector3(-3.45,y,7.941));
+    for(let i=0;i<9;i++){const x=-6.47+i*.35,y=(i%2)*.22;seamPoints.push(new THREE.Vector3(x,.22+y,7.941),new THREE.Vector3(x,.44+y,7.941));}
+    archGroup.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seamPoints),seamMat));
     const heroArch=addArchMesh(archGroup,archGeometry(4.5,1.78,.38,.58),
       {color:0xD9B4A0,map:textures.clay,roughness:.93},null,
       {pos:[0,0,7.45],cameraBlocker:true,sketchEdges:false});
@@ -763,6 +796,9 @@
       points.push(new THREE.Vector3(radius,.04,8.075));
       archGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),archStroke));
     });
+    // Solid wall collar around the lower arch springs connects to both wings.
+    panel(.12,3.05,.60,-2.71,1.525,7.72,entranceStone,false);
+    panel(.12,3.05,.60,2.71,1.525,7.72,entranceStone,false);
     // Offset low wing walls read as a cutaway maquette; no repetitive full-height ribs.
     addArchMesh(archGroup,roundedSlab(.43,2.30,1.12,.12),
       {color:0x87978A,map:textures.plaster,roughness:.95},null,
@@ -818,13 +854,13 @@
     // Smoked Walnut Desk Top (y = 0.96 to 1.02, walkable surface at y = 1.02!)
     const deskTopMesh = addArchMesh(benchGroup, roundedSlab(4.6,2.2,.09,.15), {
       map: textures.walnut,
-      color: 0xE6D4BA,
-      roughness: 0.83
+      color: 0xD8C3A6,
+      roughness: 0.89
     }, 'lab', {
       pos: [0, 0.975, 0], interactId: 'lab', interactZone: 'lab', keepLine: 0.12, cameraBlocker: true
     });
     deskTopMesh.name = 'DeskSurface';
-    deskTopMesh.material.bumpMap=textures.walnut;deskTopMesh.material.bumpScale=.006;
+    deskTopMesh.material.bumpMap=textures.walnut;deskTopMesh.material.bumpScale=.0025;
     const joineryInk=new THREE.LineBasicMaterial({color:0x533D2D,transparent:true,opacity:.28});
     const underside=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(4.32,.016,1.97),25),joineryInk);
     underside.position.set(0,.93,0);benchGroup.add(underside);
@@ -974,6 +1010,18 @@
     addArchMesh(tray,roundedSlab(.42,.22,.028,.035),{color:0xBBA585,roughness:.9},null,{pos:[0,.014,0],sketchEdges:false});
     for(let i=0;i<3;i++)addArchMesh(tray,new THREE.CylinderGeometry(.009,.009,.28,8),{color:[0xAD614A,0x667A6D,0x303A36][i],roughness:.9},null,
       {pos:[0,.037,-.055+i*.047],rot:[0,0,Math.PI/2],sketchEdges:false});
+    // A small set of actual studio implements, all outside the free front
+    // traversal strip. No fictional product visuals or numbers.
+    const sampleRack=new THREE.Group();sampleRack.position.set(-.94,1.02,-.77);benchGroup.add(sampleRack);
+    addArchMesh(sampleRack,roundedSlab(.44,.29,.026,.015),{color:0x8F7155,roughness:.91},null,{pos:[0,.013,0],sketchEdges:false});
+    for(let i=0;i<4;i++){
+      const swatch=addArchMesh(sampleRack,roundedSlab(.082,.22,.012,.012),
+        {color:[0xE9E2D2,0x667A6D,0xAD614A,0x547581][i],roughness:.94},null,{pos:[-.139+i*.092,.035,0],sketchEdges:false});
+      swatch.rotation.x=.09;
+    }
+    // Binding edge and paper stack: readable craft rather than a flat box.
+    addArchMesh(benchGroup,roundedSlab(.73,.51,.027,.024),{color:0xC4B59B,roughness:.97},null,
+      {pos:[-1.43,1.012,.08],rot:[0,.12,0],sketchEdges:false});
     // Architectural Drafting Sketchpad (left side of desk)
     addArchMesh(benchGroup, new THREE.BoxGeometry(0.86, 0.014, 0.64), { map: textures.sketchpad, color: 0xFFFFFF, roughness: 0.92 }, 'lab', {
       pos: [-1.42, 1.028, 0.08], rot: [0, 0.12, 0], interactId: 'notes', interactZone: 'lab', keepLine: 0.10
