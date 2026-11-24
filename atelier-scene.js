@@ -478,7 +478,7 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.98;
+    renderer.toneMappingExposure = 0.94;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xF2EFE5);
@@ -486,7 +486,7 @@
 
     const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 320);
     const textures = createTextures();
-    const assetReady = { plaster: false, walnut: false, chair: false, roof: false, mini: false, monitor: false, keyboard: false, lamp: false, environment: false, pbr: false };
+    const assetReady = { plaster: false, walnut: false, chair: false, roof: false, mini: false, monitor: false, keyboard: false, lamp: false, environment: false, pbr: false, lightBake: false, plant: false, books: false, notebook: false, archiveMonitor: false };
     const restorationPath='assets/restoration/';
     const surfacePBR = {};
     const textureLoader=new THREE.TextureLoader();
@@ -511,6 +511,36 @@
       surfacePBR[key].roughnessMap=load('roughness',THREE.LinearEncoding);
     }
     copySurface('walnut');copySurface('plaster');
+    // Cycles baked indirect radiance and AO, computed from browser-exported
+    // static proxy geometry. Linear data textures, not pre-rendered views.
+    const bakeMaps={floor:{},desk:{},rear:{}};
+    let bakedLoaded=0;
+    for(const key of Object.keys(bakeMaps)) for(const pass of ['ao','indirect']){
+      const tex=textureLoader.load('assets/v8/'+key+'-'+pass+'.png',()=>{
+        assetReady.lightBake=++bakedLoaded===6;
+      },undefined,e=>console.warn('V8 lightmap unavailable',key,pass,e));
+      tex.encoding=THREE.LinearEncoding;
+      tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;
+      tex.anisotropy=4;
+      bakeMaps[key][pass]=tex;
+    }
+    // UV2 is a projection in world coordinates independent of albedo UV.
+    // Ground and rugs share one lightmap, desktop gets its own closer bake.
+    function applyBakedLight(mesh,key){
+      mesh.updateMatrixWorld(true);
+      const pos=mesh.geometry.attributes.position,uv=new Float32Array(pos.count*2),v=new THREE.Vector3();
+      for(let i=0;i<pos.count;i++){
+        v.fromBufferAttribute(pos,i).applyMatrix4(mesh.matrixWorld);
+        uv[2*i]=key==='floor'?(v.x+7)/14:key==='rear'?(v.x+7.2)/14.4:(v.x+2.3)/4.6;
+        uv[2*i+1]=key==='floor'?(10.725-v.z)/17.85:key==='rear'?v.y/4.8:(1.1-v.z)/2.2;
+      }
+      mesh.geometry.setAttribute('uv2',new THREE.BufferAttribute(uv,2));
+      mesh.material.aoMap=bakeMaps[key].ao;
+      mesh.material.aoMapIntensity=key==='rear'?.46:.72;
+      mesh.material.lightMap=bakeMaps[key].indirect;
+      mesh.material.lightMapIntensity=key==='rear'?1.3:1.8;
+      mesh.material.needsUpdate=true;
+    }
     // Real HDRI-derived environment reflection, no still-image scene overlay.
     textureLoader.load(restorationPath+'studio-env.jpg',tex=>{
       tex.mapping=THREE.EquirectangularReflectionMapping;
@@ -532,7 +562,7 @@
     monitorImage.src='assets/actape-windows-preview.png';
 
     // Lighting — Soft natural architectural daylight + warm bench lamp
-    const hemi = new THREE.HemisphereLight(0xEDE7D7, 0x6D766E, .88);
+    const hemi = new THREE.HemisphereLight(0xEDE7D7, 0x6D766E, .74);
     scene.add(hemi);
 
     const sun = new THREE.DirectionalLight(0xFFE7C8, 1.48);
@@ -680,6 +710,13 @@
     floorMesh.name = 'StudioFloor';
     floorMat.bumpMap=textures.limestone;floorMat.bumpScale=.008;
     archGroup.add(floorMesh);
+    applyBakedLight(floorMesh,'floor');
+    // Hairline honed stone slab joints, rather than flat undifferentiated floor.
+    const slabJoints=[];
+    for(let x=-6;x<=6;x+=2)slabJoints.push(new THREE.Vector3(x,.004,-7.125),new THREE.Vector3(x,.004,10.725));
+    for(let z=-5.2;z<10.7;z+=1.95)slabJoints.push(new THREE.Vector3(-7,.004,z),new THREE.Vector3(7,.004,z));
+    archGroup.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(slabJoints),
+      new THREE.LineBasicMaterial({color:0x81776A,transparent:true,opacity:.20})));
 
     // Subtle inlaid architectural floor drafting lines (corridor spine -> bench -> gallery)
     const gridMat = new THREE.LineBasicMaterial({ color: PALETTE.graphite, transparent: true, opacity: 0.22 });
@@ -692,10 +729,11 @@
     archGroup.add(new THREE.LineSegments(spineGeo, gridMat));
 
     // North Work Archive Wall (z = -5.5)
-    addArchMesh(archGroup, new THREE.BoxGeometry(14.4, 4.8, 0.35), { map: textures.plaster, color: 0x7A8A7E }, 'corridor', {
+    const galleryWall=addArchMesh(archGroup, new THREE.BoxGeometry(14.4, 4.8, 0.35), { map: textures.plaster, color: 0x7A8A7E }, 'corridor', {
       pos: [0, 2.4, -5.5], castShadow: false, keepLine: 0.08, cameraBlocker: true
     });
 
+    applyBakedLight(galleryWall,'rear');
     // West elevation: real opening with thin mullions and a deep plaster reveal.
     function wallPart(w,h,d,x,y,z) {
       return addArchMesh(archGroup,new THREE.BoxGeometry(w,h,d),
@@ -750,6 +788,23 @@
     addArchMesh(archGroup,roundedSlab(.40,5.5,.08,.06),
       {color:0xA58D72,roughness:.86},null,{pos:[6.6,1.22,2.75],sketchEdges:false});
 
+    // Built-in joinery at the perimeter: recessed skirting, stone sill and
+    // precise shadow-line trim, all inside pre-existing wall envelopes.
+    const baseboard={map:textures.walnut,color:0x9E8B75,roughness:.88};
+    const trim={color:0x595D50,roughness:.68,metalness:.13};
+    for(const [w,h,d,x,y,z] of [
+      [13.05,.12,.045,0,.065,-5.302],
+      [.045,.12,6.77,-6.40,.065,-3.10],
+      [.045,.12,4.53,-6.40,.065,2.575],
+      [.045,.12,6.47,6.40,.065,-3.25]
+    ])addArchMesh(archGroup,new THREE.BoxGeometry(w,h,d),baseboard,null,{pos:[x,y,z],sketchEdges:false});
+    // Deep stone jamb / sill does not occlude the existing camera route.
+    addArchMesh(archGroup,roundedSlab(.50,4.64,.075,.035),
+      {color:0xCABDA9,map:textures.limestone,roughness:.86},null,{pos:[-6.47,.94,2.575],sketchEdges:false});
+    for(const z of [.32,4.83])addArchMesh(archGroup,new THREE.BoxGeometry(.38,3.32,.036),trim,null,
+      {pos:[-6.58,2.575,z],sketchEdges:false});
+    for(const y of [.96,4.22])addArchMesh(archGroup,new THREE.BoxGeometry(.18,.04,4.5),trim,null,
+      {pos:[-6.52,y,2.575],sketchEdges:false});
     // Mezzanine reading loft: visible architecture only; ground level remains walkable.
     addArchMesh(archGroup,new THREE.BoxGeometry(4.4,.20,1.30),{map:textures.walnut,color:0xEAD5B5,roughness:.90},null,
       {pos:[-4.05,3.78,-4.58],cameraBlocker:true,sketchEdges:false});
@@ -772,9 +827,10 @@
     // Rear exhibit wall is articulated as two painted clay bays in a quiet sage shell.
     // Front face stays behind the product plates and preserves their existing lift anchors.
     [-2.12,2.12].forEach((x,i)=>{
-      addArchMesh(archGroup,new THREE.BoxGeometry(3.65,3.82,.045),
-        {color:i===0?0x3D5549:0x9B775A,roughness:.96,map:textures.plaster},null,
+      const bay=addArchMesh(archGroup,new THREE.BoxGeometry(3.65,3.82,.045),
+        {color:i===0?0x4F6358:0x9B806B,roughness:.96,map:textures.plaster},null,
         {pos:[x,2.16,-5.29],sketchEdges:false});
+      applyBakedLight(bay,'rear');
       addArchMesh(archGroup,new THREE.BoxGeometry(3.66,.055,.10),
         {color:PALETTE.walnutDark,roughness:.82},null,{pos:[x,.25,-5.235],sketchEdges:false});
     });
@@ -820,6 +876,17 @@
       points.push(new THREE.Vector3(radius,.04,8.075));
       archGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),archStroke));
     });
+    // Precisely jointed terracotta voussoirs in the existing front arch.
+    const joints=[];
+    for(let i=1;i<15;i++){
+      const a=i*Math.PI/15;
+      joints.push(new THREE.Vector3(2.36*Math.cos(a),1.78+2.36*Math.sin(a),8.052),
+                  new THREE.Vector3(2.62*Math.cos(a),1.78+2.62*Math.sin(a),8.052));
+    }
+    for(const x of [-1,1])for(const y of [.38,.78,1.18,1.58])
+      joints.push(new THREE.Vector3(x*2.36,y,8.052),new THREE.Vector3(x*2.62,y,8.052));
+    archGroup.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(joints),
+      new THREE.LineBasicMaterial({color:0x725145,transparent:true,opacity:.29})));
     // Solid wall collar around the lower arch springs connects to both wings.
     panel(.12,3.05,.60,-2.71,1.525,7.72,entranceStone,false);
     panel(.12,3.05,.60,2.71,1.525,7.72,entranceStone,false);
@@ -843,8 +910,9 @@
     [-.34,.34].forEach(dx=>addArchMesh(archGroup,roundedSlab(.20,.35,.42,.055),
       {color:0xA99377,roughness:.93},null,{pos:[-1.9+dx,.21,9.25],sketchEdges:false}));
     // Woven runner, visually connecting the threshold to the bench; no floor height change.
-    addArchMesh(archGroup,roundedSlab(2.08,4.3,.009,.12),{map:textures.linen,color:0xD9D5BE,roughness:1},null,
+    const corridorRug=addArchMesh(archGroup,roundedSlab(2.08,4.3,.009,.12),{map:textures.linen,color:0xD9D5BE,roughness:1},null,
       {pos:[0,.006,5.2],castShadow:false,sketchEdges:false});
+    applyBakedLight(corridorRug,'floor');
     // A separately authored Blender roof joins the rear wall and makes the
     // maquette a coherent building. Leave the viewing side and skylight open.
     const canopyFallback=new THREE.Group();archGroup.add(canopyFallback);
@@ -855,6 +923,19 @@
       model.traverse(o=>{
         if(!o.isMesh)return;
         o.castShadow=true;o.receiveShadow=true;
+        if(/timber|rafter|column|ridge/i.test(o.name)&&o.material&&o.material.isMeshStandardMaterial){
+          // Each imported mesh owns its authored tint. Shared source material
+          // must never be repeatedly multiplied by mesh count.
+          o.material=o.material.clone();
+          o.material.color.set(0xD8C4AA).convertSRGBToLinear();
+          o.material.roughness=.94;
+          if(o.geometry.attributes.uv){
+            o.material.map=surfacePBR.walnut.map;
+            o.material.normalMap=surfacePBR.walnut.normalMap;
+            o.material.normalScale.setScalar(.17);
+          }
+          o.material.needsUpdate=true;
+        }
         if(/Roof_column|Roof.column|Gable|Ridge|Cutaway_roof_edge/i.test(o.name)){
           cameraColliders.push(o);
           const lines=new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry,32),
@@ -871,20 +952,23 @@
     scene.add(benchGroup);
 
     // Woven Warm Stone Studio Rug under Prototype Bench
-    addArchMesh(benchGroup, roundedSlab(6.2,3.8,.018,.22), { map:textures.linen, color: 0xAAB49E, roughness: 0.98 }, 'lab', {
+    const labRug=addArchMesh(benchGroup, roundedSlab(6.2,3.8,.018,.22), { map:textures.linen, color: 0xAAB49E, roughness: 0.98 }, 'lab', {
       pos: [0, 0.011, 0], castShadow: false, keepLine: 0.10
     });
 
+    applyBakedLight(labRug,'floor');
     // Smoked Walnut Desk Top (y = 0.96 to 1.02, walkable surface at y = 1.02!)
     const deskTopMesh = addArchMesh(benchGroup, roundedSlab(4.6,2.2,.09,.15), {
       map: textures.walnut,
-      color: 0xD6C7B9,
-      roughness: 0.74
+      color: 0xBAA794,
+      roughness: 0.96
     }, 'lab', {
       pos: [0, 0.975, 0], interactId: 'lab', interactZone: 'lab', keepLine: 0.12, cameraBlocker: true
     });
     deskTopMesh.name = 'DeskSurface';
-    deskTopMesh.material.normalScale.setScalar(.35);
+    applyBakedLight(deskTopMesh,'desk');
+    deskTopMesh.material.normalScale.setScalar(.18);
+    deskTopMesh.material.envMapIntensity=.27;
     const joineryInk=new THREE.LineBasicMaterial({color:0x533D2D,transparent:true,opacity:.28});
     const underside=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(4.32,.016,1.97),25),joineryInk);
     underside.position.set(0,.93,0);benchGroup.add(underside);
@@ -898,9 +982,9 @@
       const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:aoTex,transparent:true,opacity:alpha,depthWrite:false}));
       m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.renderOrder=1;benchGroup.add(m);
     }
-    contactAO(0,.023,0,5.1,2.5,.68);
-    contactAO(-.15,1.021,-.42,.80,.44,.5);
-    contactAO(1.72,1.021,-.46,.46,.36,.5);
+    contactAO(0,.023,0,5.1,2.5,.30);
+    contactAO(-.15,1.021,-.42,.80,.44,.22);
+    contactAO(1.72,1.021,-.46,.46,.36,.22);
 
     // Thin shadow reveal and timber apron give the desk a crafted furniture profile.
     addArchMesh(benchGroup, roundedSlab(4.38,1.98,.065,.13),
@@ -917,6 +1001,11 @@
     });
     addArchMesh(benchGroup,roundedSlab(3.65,.075,.09,.03),
       {color:0x46534A,roughness:.86},null,{pos:[0,.35,-.72],sketchEdges:false});
+    for(const x of [-1.75,1.75])for(const z of [-.72,.72])
+      addArchMesh(benchGroup,new THREE.CylinderGeometry(.053,.056,.034,24),
+        {color:0x38423C,metalness:.35,roughness:.48},null,{pos:[x,.026,z],sketchEdges:false});
+    addArchMesh(benchGroup,roundedSlab(3.8,.025,.026,.01),
+      {color:0x60503E,metalness:.24,roughness:.58},null,{pos:[0,.921,1.003],sketchEdges:false});
     // A desk pad bounds the computer group, leaving a clean miniature walking surface.
     addArchMesh(benchGroup,roundedSlab(1.34,.50,.012,.045),
       {color:0x65796D,roughness:.94},null,{pos:[-.09,1.023,.12],castShadow:false,sketchEdges:false});
@@ -1081,9 +1170,10 @@
     // bounds, not the other way around; no character/camera/state changes.
     function professionalModel(file,key,fallback,anchor,extent,options={}){
       if(!THREE.GLTFLoader)return;
-      new THREE.GLTFLoader().load(restorationPath+file,gltf=>{
+      new THREE.GLTFLoader().load((options.assetPath||restorationPath)+file,gltf=>{
         try{
           const model=gltf.scene;
+          const host=options.parent||benchGroup,zone=options.zone||'lab';
           const discard=[];
           model.traverse(o=>{if(/^(cable|cables)$/i.test(o.name))discard.push(o);});
           discard.forEach(o=>o.parent.remove(o));
@@ -1112,7 +1202,7 @@
               }
             }
             if(options.interact){
-              o.userData.interactId=options.interact;o.userData.interactZone='lab';
+              o.userData.interactId=options.interact;o.userData.interactZone=zone;
             }
           });
           let realScreen=null;
@@ -1125,17 +1215,17 @@
             realScreen=new THREE.Mesh(new THREE.PlaneGeometry(ss.x,ss.y),
               new THREE.MeshBasicMaterial({map:textures.labScreen,color:0xffffff,toneMapped:false}));
             realScreen.position.set(sc.x,sc.y,sb.max.z+.0018);
-            realScreen.userData.interactId='lab';realScreen.userData.interactZone='lab';
+            realScreen.userData.interactId=options.interact||'lab';realScreen.userData.interactZone=zone;
             screen.visible=false;
           }
           for(const o of fallback)o.visible=false;
           const obsolete=new Set();
           fallback.forEach(o=>o.traverse(n=>obsolete.add(n)));
           for(let i=interactables.length-1;i>=0;i--)if(obsolete.has(interactables[i]))interactables.splice(i,1);
-          benchGroup.add(model);
+          host.add(model);
           if(options.interact)model.traverse(o=>{if(o.isMesh&&o.visible)interactables.push(o);});
-          if(realScreen){benchGroup.add(realScreen);interactables.push(realScreen);}
-          zoneRevealState.lab.items.push(...mapped);
+          if(realScreen){host.add(realScreen);interactables.push(realScreen);}
+          if(zoneRevealState[zone])zoneRevealState[zone].items.push(...mapped);
           assetReady[key]=true;
         }catch(e){console.warn('Restoration model fallback',key,e);}
       },undefined,e=>console.warn('Restoration asset unavailable',key,e));
@@ -1198,17 +1288,42 @@
         { color: PALETTE.ochre, roughness: 0.67, metalness: 0.25 }, null, {
           pos: [-0.81, -1.02, -0.005], sketchEdges: false
         });
+      // Museum label typography on the existing brass plate, legible nearby.
+      const titleTex=makeCanvasTexture(512,100,(ctx,w,h)=>{
+        ctx.fillStyle='#c3ae89';ctx.fillRect(0,0,w,h);
+        ctx.fillStyle='#303932';ctx.font='600 38px Georgia';ctx.textBaseline='middle';
+        ctx.fillText(interactId==='actape'?'Actape':'Snug for Windows',16,h/2);
+      });
+      const label=new THREE.Mesh(new THREE.PlaneGeometry(.565,.078),new THREE.MeshBasicMaterial({map:titleTex}));
+      label.position.set(-.81,-1.02,.009);g.add(label);
+      // Cabinet front is a piece of furniture, not a single colored block.
         // Small working display surfaces, distinguished by product orientation.
       addArchMesh(g,roundedSlab(2.35,.58,.09,.04),{map:textures.walnut,color:0xE3CBA7,roughness:.87},null,
         {pos:[0,-1.30,.29],sketchEdges:false});
       addArchMesh(g,new THREE.BoxGeometry(2.25,.48,.38),{color:interactId==='actape'?0x63766B:0xB18A6E,roughness:.91},null,
         {pos:[0,-1.59,.23],sketchEdges:false});
+      for(const x of [-.75,0,.75]){
+        addArchMesh(g,new THREE.BoxGeometry(.675,.405,.025),
+          {map:textures.walnut,color:0xAB9780,roughness:.94},null,
+          {pos:[x,-1.59,.431],sketchEdges:false});
+        addArchMesh(g,new THREE.BoxGeometry(.14,.017,.021),
+          {color:0xA5957C,metalness:.56,roughness:.4},null,
+          {pos:[x,-1.46,.455],sketchEdges:false});
+      }
       const portrait=interactId==='snug';
       const device=addArchMesh(g,new THREE.BoxGeometry(portrait?.23:.67,portrait?.43:.42,.055),
         {color:0x303A36,roughness:.78},null,{pos:[portrait?.6:-.6,-1.03,.40],rot:[-.12,0,0],sketchEdges:false,interactId,interactZone:zoneKey});
       const face=new THREE.Mesh(new THREE.PlaneGeometry(portrait?.20:.62,portrait?.39:.37),
         new THREE.MeshBasicMaterial({map:portrait?textures.phoneScreen:textures.labScreen}));
       face.position.z=.029;device.add(face);
+      if(!portrait){
+        professionalModel('desktop-monitor.glb','archiveMonitor',[device],[-.80,-1.247,.40],
+          [.79,.54,.37],{parent:g,zone:zoneKey,screen:true,interact:interactId});
+      }else{
+        // Add a real physical display stand rather than floating phone geometry.
+        addArchMesh(g,roundedSlab(.26,.24,.025,.034),{color:0x7C847E,metalness:.48,roughness:.45},null,
+          {pos:[.6,-1.247,.40],sketchEdges:false});
+      }
       // Architectural Floor Alignment Marker for Wall Lift
       const liftRing = new THREE.Mesh(
         new THREE.RingGeometry(0.26, 0.30, 32),
@@ -1233,13 +1348,27 @@
 
     // Open joinery bookcase: dark recessed back, solid uprights, varied book groupings.
     addArchMesh(notesGroup,new THREE.BoxGeometry(.08,3.1,3.2),
-      {color:0x655748,roughness:.92},null,{pos:[-6.39,1.55,-.6],sketchEdges:false});
+      {map:textures.walnut,color:0x85735F,roughness:.96},null,{pos:[-6.39,1.55,-.6],sketchEdges:false});
     [-2.16,-.60,.96].forEach(z=>addArchMesh(notesGroup,new THREE.BoxGeometry(.58,3.10,.068),
-      {color:0x80674E,roughness:.84},'notes',{pos:[-6.08,1.55,z],interactId:'notes',interactZone:'notes',sketchEdges:false}));
+      {map:textures.walnut,color:0xA28B70,roughness:.94},'notes',{pos:[-6.08,1.55,z],interactId:'notes',interactZone:'notes',sketchEdges:false}));
+    const librarySetFallback=[];
+    const spineMats=Array.from({length:6},(_,i)=>new THREE.MeshStandardMaterial({
+      map:makeCanvasTexture(128,512,(ctx,w,h)=>{
+        const base=['#3f554b','#a7654c','#c9bc9c','#4e6571','#8d7851','#d6cbba'][i];
+        ctx.fillStyle=base;ctx.fillRect(0,0,w,h);
+        ctx.fillStyle='rgba(242,229,203,.22)';
+        for(let j=0;j<6;j++)ctx.fillRect(0,35+j*3,w,1);
+        ctx.save();ctx.translate(w*.52,h*.48);ctx.rotate(-Math.PI/2);
+        ctx.fillStyle=i===2||i===5?'#3d423b':'#efe0be';
+        ctx.font='500 28px Georgia';ctx.textAlign='center';
+        ctx.fillText(['FIELD NOTES','STUDIES','DESIGN','SYSTEMS','ARCHIVE','ATELIER'][i],0,0);
+        ctx.restore();ctx.fillStyle='rgba(30,31,25,.22)';ctx.fillRect(0,h-52,w,2);
+      }),roughness:.95
+    }));
     for(let row=0;row<5;row++){
       const y=.16+row*.71;
       addArchMesh(notesGroup,new THREE.BoxGeometry(.58,.06,3.18),
-        {color:0x94795D,roughness:.85},'notes',{pos:[-6.08,y,-.6],interactId:'notes',interactZone:'notes',sketchEdges:false});
+        {map:textures.walnut,color:0xB09B80,roughness:.94},'notes',{pos:[-6.08,y,-.6],interactId:'notes',interactZone:'notes',sketchEdges:false});
       if(row===4)break;
       const colors=[0x485B51,0xB86B50,0xD6C5A2,0x566F7A,0xAE9465,0xE6DCCC];
       for(let group=0;group<3;group++){
@@ -1249,32 +1378,63 @@
           z+=w/2;
           const book=addArchMesh(notesGroup,new THREE.BoxGeometry(.31,h,w),
             {color:colors[(k+row+group)%colors.length],roughness:.94},null,{pos:[-5.98,y+.03+h/2,z],interactId:'notes',interactZone:'notes',sketchEdges:false});
+          if(row===2&&group===1)librarySetFallback.push(book);
+          else {
+            const spine=new THREE.Mesh(new THREE.PlaneGeometry(w*.94,h*.97),spineMats[(k+row+group)%6]);
+            spine.rotation.y=Math.PI/2;spine.position.x=.156;book.add(spine);
+          }
           if(k===0&&group===1)book.rotation.x=.12;
           z+=w/2+.012;
         }
       }
     }
 
+    professionalModel('books.glb','books',librarySetFallback,[-6.00,1.61,-.63],
+      [.34,.43,.81],{assetPath:'assets/v8/',parent:notesGroup,zone:'notes',yaw:Math.PI/2,interact:'notes'});
     // Reading Lectern Stand in front of Library
     addArchMesh(notesGroup, new THREE.BoxGeometry(0.42, 0.92, 0.42), { color: PALETTE.stoneWarm }, 'notes', {
       pos: [-4.65, 0.46, -0.6], interactId: 'notes', interactZone: 'notes', keepLine: 0.14
     });
-    addArchMesh(notesGroup, new THREE.BoxGeometry(0.52, 0.03, 0.36), { color: PALETTE.paper }, 'notes', {
+    const notesPaper=addArchMesh(notesGroup, new THREE.BoxGeometry(0.52, 0.03, 0.36), { color: PALETTE.paper }, 'notes', {
       pos: [-4.62, 0.96, -0.6], rot: [0, 0, -0.18], interactId: 'notes', interactZone: 'notes', keepLine: 0.10
     });
 
+    professionalModel('notebook.glb','notebook',[notesPaper],[-4.62,.92,-.6],[.52,.10,.36],
+      {assetPath:'assets/v8/',parent:notesGroup,zone:'notes',interact:'notes'});
     // ==================== 5. ABOUT CORNER (EAST WING) ====================
     const aboutGroup = new THREE.Group();
     scene.add(aboutGroup);
 
     // Fluted Travertine Plinth
-    addArchMesh(aboutGroup, new THREE.CylinderGeometry(0.44, 0.48, 1.04, 16), { color: PALETTE.stoneWarm, roughness: 0.85 }, 'about', {
+    const plinthGeometry=new THREE.CylinderGeometry(.44,.48,1.04,120,1,false);
+    const pp=plinthGeometry.attributes.position;
+    for(let i=0;i<pp.count;i++){
+      const x=pp.getX(i),z=pp.getZ(i),r=Math.hypot(x,z);
+      if(r>.40){
+        const a=Math.atan2(z,x),cut=.013*(.5+.5*Math.cos(a*30));
+        pp.setX(i,x*(r-cut)/r);pp.setZ(i,z*(r-cut)/r);
+      }
+    }
+    plinthGeometry.computeVertexNormals();
+    addArchMesh(aboutGroup, plinthGeometry, { map:textures.limestone,color: PALETTE.stoneWarm, roughness: .93 }, 'about', {
       pos: [5.15, 0.52, -1.2], interactId: 'about', interactZone: 'about', keepLine: 0.16
     });
     // Sculptural r.n Monogram Block on Plinth
-    addArchMesh(aboutGroup, new THREE.BoxGeometry(0.42, 0.42, 0.42), { color: PALETTE.ink, roughness: 0.55 }, 'about', {
+    const monogram=addArchMesh(aboutGroup, roundedSlab(.42,.42,.42,.055), { color: PALETTE.ink, metalness:.19,roughness: .72 }, 'about', {
       pos: [5.15, 1.26, -1.2], rot: [0, 0.42, 0], interactId: 'about', interactZone: 'about', keepLine: 0.14
     });
+    const monogramTexture=makeCanvasTexture(512,512,(ctx,w,h)=>{
+      ctx.fillStyle='#26362d';ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle='#9e896a';ctx.lineWidth=3;ctx.strokeRect(27,27,w-54,h-54);
+      ctx.fillStyle='#d8c5a2';ctx.font='220px Georgia';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('r.n.',w/2,h*.51);
+    });
+    for(const face of [0,-Math.PI/2]){
+      const mark=new THREE.Mesh(new THREE.PlaneGeometry(.32,.32),
+        new THREE.MeshStandardMaterial({map:monogramTexture,roughness:.77,metalness:.12}));
+      mark.rotation.y=face;mark.position.set(Math.sin(face)*.211,0,Math.cos(face)*.211);
+      monogram.add(mark);
+    }
     const terraSphere = addArchMesh(aboutGroup, new THREE.SphereGeometry(0.11, 20, 16), { color: PALETTE.terra, roughness: 0.42 }, 'about', {
       pos: [5.44, 1.15, -0.96], sketchEdges: false, interactId: 'about', interactZone: 'about'
     });
@@ -1294,6 +1454,7 @@
     interactables.push(plaqueFace);
     plaqueFrame.add(plaqueFace);
 
+    const oldPlantStart=aboutGroup.children.length;
     // Sculpted Architectural Indoor Olive/Ficus Plant (living studio warmth)
     addArchMesh(aboutGroup, new THREE.CylinderGeometry(0.32, 0.25, 0.52, 16), { color: PALETTE.stone, roughness: 0.9 }, 'about', {
       pos: [5.45, 0.26, 1.35], keepLine: 0.10
@@ -1307,6 +1468,8 @@
       });
     });
 
+    professionalModel('plant.glb','plant',aboutGroup.children.slice(oldPlantStart),[5.45,0,1.35],
+      [.96,2.05,.96],{assetPath:'assets/v8/',parent:aboutGroup,zone:'about'});
     // ==================== 6. CLICK-TO-WALK TARGET RING & MINI CHARACTER ====================
     const targetRing = new THREE.Mesh(
       new THREE.RingGeometry(0.14, 0.19, 28),
