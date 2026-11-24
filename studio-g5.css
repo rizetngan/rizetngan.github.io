@@ -1,0 +1,15 @@
+:root{--g5-ink:#242825;--g5-white:#eae7e0;--g5-accent:#b85b30}
+body,.atelier-shell{background:#242825}
+.canvas-grain{opacity:.017!important}.canvas-vignette{background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.28) 100%)!important}
+.site-header{color:var(--g5-white);background:linear-gradient(180deg,rgba(23,27,23,.76),transparent)!important;padding-top:26px}
+.wordmark,.main-nav a,.mode-toggle{color:var(--g5-white)!important}.main-nav a.active{color:white!important}
+.atelier-shell.is-entered .main-nav{background:rgba(29,34,30,.79)!important;box-shadow:none;border-radius:2px}
+.mode-toggle{background:rgba(29,34,30,.85)!important;border-color:rgba(234,231,224,.25)!important}
+.entrance-hero{color:var(--g5-white);text-shadow:0 2px 20px #171d17}.entrance-hero h1 em{color:#caa37d}.entrance-hero::before{background:linear-gradient(90deg,rgba(26,30,26,.86),transparent)!important}
+.hero-sub:empty{display:none}.hero-kicker{color:#d4c5b4}.hero-actions .btn-primary{background:#eae7e0;color:#242825;box-shadow:none}.hero-actions .btn-secondary,.hero-actions .btn-link{color:#eae7e0;border-color:rgba(234,231,224,.3)}
+.spatial-card{color:#eae7e0!important;background:transparent!important}.spatial-card::before{background:radial-gradient(ellipse at left,rgba(24,28,24,.87),transparent 80%)!important}.card-meta,.card-meta span,.card-next-btn{color:#eae7e0!important}.card-reveal-pill,.bottom-left,.chapter-dots{display:none!important}
+.bottom-right,.atelier-shell.is-mini .bottom-right{background:rgba(29,34,30,.80)!important;color:#eae7e0!important;border-color:rgba(234,231,224,.2)!important}.control-hint,.icon-btn{color:inherit!important}
+.context-prompt{background:#232924!important;color:#eae7e0!important;border-color:rgba(234,231,224,.2)!important}.prompt-dot{background:#c66b42!important}
+.studio-loader{position:fixed;inset:0;z-index:999;display:grid;align-content:center;justify-items:center;gap:12px;background:#242825;color:#c7c6b8;font:12px system-ui;letter-spacing:.08em;transition:opacity .5s,visibility .5s;pointer-events:none}.studio-loader-mark{font:44px Georgia,serif;color:#eae7e0;letter-spacing:-.05em}.studio-ready .studio-loader,.studio-fallback .studio-loader{opacity:0;visibility:hidden}
+@media(max-width:768px){.site-header{padding-top:16px}.main-nav{display:none!important}.entrance-hero::before{background:linear-gradient(0deg,rgba(23,27,23,.94),transparent)!important}.bottom-right .control-hint{display:none}.mode-toggle{max-width:150px}}
+@media(prefers-reduced-motion:reduce){.studio-loader{transition:none}}

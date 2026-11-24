@@ -486,7 +486,7 @@
 
     const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 320);
     const textures = createTextures();
-    const assetReady = { plaster: false, walnut: false, chair: false, roof: false, mini: false };
+    const assetReady = { plaster: false, walnut: false, chair: false, roof: false, mini: false, studio: false };
     function replaceTexturePixels(target,url,key) {
       const img=new Image();
       img.onload=()=>{
@@ -832,7 +832,7 @@
         if(!o.isMesh)return;
         o.castShadow=true;o.receiveShadow=true;
         if(/Roof_column|Roof.column|Gable|Ridge|Cutaway_roof_edge/i.test(o.name)){
-          cameraColliders.push(o);
+          if(!assetReady.studio)cameraColliders.push(o);
           const lines=new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry,32),
             new THREE.LineBasicMaterial({color:0x4A4034,transparent:true,opacity:.28}));
           o.add(lines);
@@ -1222,8 +1222,54 @@
       assetReady.mini=miniCharacter.bindSkin(gltf);
     },undefined,()=>{assetReady.mini=false;});
 
+    // G5: one Blender-authored studio replaces the legacy visual groups. The
+    // existing floor/desk proxy meshes are retained solely for picking/movement.
+    // Names exported from Blender identify collision and content targets.
+    function revealG5(model) {
+      for(const g of [archGroup,benchGroup,archiveGroup,notesGroup,aboutGroup]) g.visible=false;
+      cameraColliders.length=0;interactables.length=0;
+      const envCanvas=document.createElement('canvas');envCanvas.width=512;envCanvas.height=256;
+      const ec=envCanvas.getContext('2d'),grad=ec.createLinearGradient(0,0,0,256);
+      grad.addColorStop(0,'#d7cfba');grad.addColorStop(.48,'#787f77');grad.addColorStop(1,'#292c27');
+      ec.fillStyle=grad;ec.fillRect(0,0,512,256);
+      ec.fillStyle='#fff3dd';ec.fillRect(70,45,104,130);ec.fillStyle='#dce5e3';ec.fillRect(330,35,76,115);
+      const envTex=new THREE.CanvasTexture(envCanvas);envTex.mapping=THREE.EquirectangularReflectionMapping;envTex.encoding=THREE.sRGBEncoding;
+      const pmrem=new THREE.PMREMGenerator(renderer);scene.environment=pmrem.fromEquirectangular(envTex).texture;envTex.dispose();pmrem.dispose();
+      scene.background.set(0x242825).convertSRGBToLinear();scene.fog.color.copy(scene.background);scene.fog.density=.003;
+      renderer.toneMappingExposure=1.12;
+      hemi.intensity=.86;hemi.color.set(0xF6EBD8);hemi.groundColor.set(0x928777);
+      sun.intensity=1.68;sun.position.set(-11,5.8,4.5);sun.color.set(0xFFE2B7);
+      fillLight.intensity=.72;fillLight.position.set(3.7,5,6.5);fillLight.color.set(0xDEE8E4);
+      deskLampLight.position.set(1.44,1.82,-.57);deskLampLight.intensity=.65;
+      model.traverse(o=>{
+        if(!o.isMesh)return;
+        const name=o.name;
+        o.castShadow=!name.startsWith('COL_floor');o.receiveShadow=true;
+        if(name.startsWith('COL_')&&!name.startsWith('COL_floor'))cameraColliders.push(o);
+        let id=null;
+        if(name.startsWith('LAB_Actape'))id='lab';
+        else if(name.startsWith('LAB_Snug')||name.startsWith('SNUG'))id='snug';
+        else if(name.startsWith('ACTAPE'))id='actape';
+        else if(name.startsWith('NOTES'))id='notes';
+        else if(name.startsWith('ABOUT'))id='about';
+        if(id){o.userData.interactId=id;o.userData.interactZone=name.startsWith('LAB_')?'lab':id;interactables.push(o);}
+        // No added outlines or stylized reveal; materials are the authored GLB.
+        if(o.material&&o.material.isMeshStandardMaterial)o.material.envMapIntensity=.7;
+      });
+      const windowGuard=new THREE.Mesh(new THREE.BoxGeometry(.06,3.45,5.75),new THREE.MeshBasicMaterial({visible:false}));
+      windowGuard.position.set(-6.6,2.67,2.65);model.add(windowGuard);cameraColliders.push(windowGuard);
+      scene.add(model);model.updateMatrixWorld(true);
+      assetReady.studio=true;
+      document.documentElement.classList.add('studio-ready');
+    }
+    if(THREE.GLTFLoader)new THREE.GLTFLoader().load('assets/g5/studio.glb',g=>revealG5(g.scene),undefined,err=>{
+      console.warn('G5 studio failed; previous space retained',err);
+      document.documentElement.classList.add('studio-fallback');
+    });
+
     // ==================== PRECISION SKETCH -> MATERIAL REALITY UPDATER ====================
     function updateSketchReveal(focusWorldPos, activeZoneKey, dt) {
+      if(assetReady.studio)return;
       const rate = Math.min(1, dt * 3.4);
       Object.entries(zoneRevealState).forEach(([key, zone]) => {
         const dist = focusWorldPos.distanceTo(zone.pos);

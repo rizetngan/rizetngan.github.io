@@ -1,0 +1,6 @@
+# G5 Cinematic Product Atelier
+Approved direction: cinematic interior, industrial product objects, editorial portfolio and optional Mini. Keep original production and E2 preview untouched.
+Architecture: index.html and two independent static product pages, with semantic content independent of WebGL. studio.html retains E2's tested state machine, loads one shared Blender GLB instead of incremental procedural groups. Existing proxy surfaces retain interaction coordinates, collision named COL_ meshes. Real source images are letterboxed; display carriers are not invented products.
+Design: dark charcoal and olive, warm walnut, muted porcelain; serif editorial scale, responsive image-led grid, restrained native transitions, reduced-motion support.
+Art production: tools/build-g5.py produces editable packed atelier-g5.blend, shared GLB and 4 Cycles JPEGs; Blender 5.1.2 + Pillow. Source textures from E2 provenance, actual Actape/Snug repository assets. Rendered assets are included; editable blend retained locally and reproducible. No external runtime model dependency. 
+Release gate: verify actual images and page layouts, direct content, live GLB, Mini traversal, asset failure fallback, mobile, and online preview. GPU frame pacing and concept-level visual approval remain distinct from functional testing.

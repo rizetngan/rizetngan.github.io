@@ -165,9 +165,9 @@
       title: '入口前厅',
       zoneLabel: 'ENTRANCE',
       desc: '柔和自然光落入暖石前厅。向下滚动或点击空间，沿建筑走廊走入工坊。',
-      camPos: new THREE.Vector3(15.9, 11.9, 23.8),
-      camLook: new THREE.Vector3(-2.7, 1.25, 3.6),
-      spawnPos: new THREE.Vector3(0, 0, 8.6),
+      camPos: new THREE.Vector3(5.2, 3.1, 8.0),
+      camLook: new THREE.Vector3(-.2, 1.45, -.2),
+      spawnPos: new THREE.Vector3(0, 0, 4.8),
       contentId: 'about',
       revealZone: 'entrance'
     },
@@ -189,8 +189,8 @@
       title: '原型工作台',
       zoneLabel: 'PROTOTYPE BENCH',
       desc: '空间的视觉核心：胡桃木工作台、显示器、竖屏设备与建筑草图。按 F 可让 Mini 角色跃上桌面。',
-      camPos: new THREE.Vector3(3.5, 2.8, 4.4),
-      camLook: new THREE.Vector3(-0.25, 1.14, -0.10),
+      camPos: new THREE.Vector3(2.8, 2.28, 4.35),
+      camLook: new THREE.Vector3(.10, 1.45, -.18),
       spawnPos: new THREE.Vector3(0, 0, 2.35),
       contentId: 'lab',
       revealZone: 'lab'
@@ -871,9 +871,7 @@
     // Architectural arch feet, timber screen and low wing. The visual model and
     // floor traversal use the same footprint, with a small body radius.
     const archObstacles = [
-      [-3.60,-2.08,7.28,8.21],[2.08,3.60,7.28,8.21],
-      [3.26,3.64,6.02,8.42],[-3.96,-3.28,7.70,10.31],
-      [-2.55,-1.25,8.88,9.62],[-6.0,-5.36,.32,4.84],[-6.5,-3.35,7.25,8.16]
+      [-6.5,-5.45,.20,5.08]
     ];
     archObstacles.forEach(([l,r,b,f])=>{
       if(p.x<=l||p.x>=r||p.z<=b||p.z>=f)return;
@@ -884,10 +882,8 @@
     // Lectern & Plinth small obstacles
     const pillars = [
       { x: -4.65, z: -0.6, r: 0.56 },
-      { x: 3.0, z: 1.3, r: 0.32 },
       { x: -1.95, z: -1.67, r: 0.42 },
-      { x: 5.15, z: -1.2, r: 0.72 },
-      { x: 5.45, z: 1.35, r: 0.52 }
+      { x: 5.15, z: -1.2, r: 0.72 }
     ];
     pillars.forEach(ob => {
       const dx = p.x - ob.x;
@@ -906,13 +902,13 @@
   function resolveDeskCollision(nextPos) {
     const p = nextPos.clone();
     // Monitor & lamp soft bounds on desk
-    const monitorBox = { minX: -0.95, maxX: 0.65, minZ: -0.78, maxZ: -0.18 };
+    const monitorBox = { minX: -1.18, maxX: .88, minZ: -0.78, maxZ: -0.18 };
     if (p.x > monitorBox.minX && p.x < monitorBox.maxX && p.z > monitorBox.minZ && p.z < monitorBox.maxZ) {
       p.z = monitorBox.maxZ;
     }
     // Keep feet outside the original study model on the back-left of the desk.
-    if(p.x>-2.02&&p.x<-1.28&&p.z>-.94&&p.z<-.36)p.z=-.36;
-    if(p.x>.40&&p.x<.96&&p.z>-.76&&p.z<-.40)p.z=-.40;
+    if(p.x>.93&&p.x<1.44&&p.z>-.48&&p.z<.02)p.z=.02;
+    if(p.x>1.57&&p.x<2.07&&p.z>-.95&&p.z<-.44)p.z=-.44;
     p.x = THREE.MathUtils.clamp(p.x, DESK_BOUNDS.minX + 0.16, DESK_BOUNDS.maxX - 0.16);
     p.z = THREE.MathUtils.clamp(p.z, DESK_BOUNDS.minZ + 0.16, DESK_BOUNDS.maxZ - 0.16);
     p.y = DESK_BOUNDS.topY;
@@ -1045,10 +1041,8 @@
   });
 
   document.getElementById('brandHome').addEventListener('click', (e) => {
-    e.preventDefault();
-    gotoChapter('entrance', { openHero: true });
-    STATE.entered = false;
-    appEl.classList.remove('is-entered');
+    // G5 portfolio and 3D studio are separate, shareable routes.
+    // Follow the native homepage link rather than trapping visitors in the scene.
   });
 
   document.querySelectorAll('[data-goto]').forEach(el => {
@@ -1295,6 +1289,7 @@
     }
   }
   applyHashRoute();
+  if(!location.hash)gotoChapter('lab',{quiet:true,openHero:true});
 
   // ==================== MAIN ANIMATION & ORCHESTRATION LOOP ====================
   function angleDelta(from, to) {
@@ -1480,8 +1475,8 @@
       const py = prefersReducedMotion || mode === 'READING' ? 0 : -STATE.pointerParallax.y * 0.12;
       const portrait = world.camera.aspect < .85;
       if (ch.id === 'entrance' && portrait) {
-        STATE.desiredCamPos.set(18.2, 14.5, 27.8);
-        STATE.desiredCamLook.set(0, 1.3, 3.0);
+        STATE.desiredCamPos.set(3.6, 3.0, 8.8);
+        STATE.desiredCamLook.set(0, 1.4, -.15);
       } else {
         STATE.desiredCamPos.set(ch.camPos.x + px, ch.camPos.y + py, ch.camPos.z);
         STATE.desiredCamLook.copy(ch.camLook);

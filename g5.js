@@ -1,0 +1,1 @@
+'use strict';document.addEventListener('keydown',e=>{if(e.key.toLowerCase()!=='f'||e.ctrlKey||e.metaKey||e.altKey||e.repeat||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable)return;e.preventDefault();location.href='studio.html';});
