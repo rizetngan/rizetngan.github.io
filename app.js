@@ -335,6 +335,9 @@
     collisionDist: 3.85, // actual arm length after architectural obstruction
     focusReturn: null, // saved user-selected view before cinematic exhibit framing
     pointerId: null,
+    mouseCaptured: false,
+    lockUnavailable: isTouchDevice || typeof canvasEl.requestPointerLock !== 'function',
+    unlockedAt: -Infinity,
     dragButton: 0,
     pointerParallax: { x: 0, y: 0 },
 
@@ -356,6 +359,51 @@
     toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 2600);
   }
 
+  // Capture only in response to an explicit entry or canvas click. Never auto-recapture
+  // after Escape, a reading panel, or loss of browser focus.
+  function stopMiniInput() {
+    STATE.keys.clear();
+    STATE.charVel.set(0, 0, 0);
+    STATE.walkTarget = null;
+    STATE.pendingActionAfterWalk = null;
+    STATE.mountIntentTimer = 0;
+    STATE.dismountIntentTimer = 0;
+    STATE.liftIntentTimer = 0;
+    STATE.isDragging = false;
+    if (STATE.pointerId !== null && canvasEl.hasPointerCapture?.(STATE.pointerId)) {
+      canvasEl.releasePointerCapture(STATE.pointerId);
+    }
+    STATE.pointerId = null;
+    viewportEl.classList.remove('is-dragging');
+  }
+
+  function releaseMiniMouse() {
+    stopMiniInput();
+    if (document.pointerLockElement === canvasEl) document.exitPointerLock();
+  }
+
+  function captureMiniMouse() {
+    if (STATE.mode !== 'MINI_WALKING' || STATE.helpOpen || STATE.lockUnavailable ||
+        document.pointerLockElement === canvasEl) return false;
+    try {
+      const request = canvasEl.requestPointerLock();
+      if (request && typeof request.catch === 'function') {
+        request.catch(() => { STATE.lockUnavailable = true; updateUI(); });
+      }
+      return true;
+    } catch (_) {
+      STATE.lockUnavailable = true;
+      updateUI();
+      return false;
+    }
+  }
+
+  function rotateMiniMouse(dx, dy) {
+    STATE.orbitYaw -= dx * 0.0035;
+    STATE.orbitYaw = Math.atan2(Math.sin(STATE.orbitYaw), Math.cos(STATE.orbitYaw));
+    STATE.orbitPitch = THREE.MathUtils.clamp(STATE.orbitPitch + dy * 0.0030, 0.07, 1.31);
+  }
+
   function setEntered() {
     if (!STATE.entered) {
       STATE.entered = true;
@@ -369,6 +417,7 @@
 
     appEl.classList.toggle('is-mini', inMini);
     viewportEl.classList.toggle('is-mini', inMini);
+    viewportEl.classList.toggle('is-mouse-captured', STATE.mouseCaptured);
     appEl.classList.toggle('is-reading', STATE.mode === 'READING');
 
     modeSwitchBtn.classList.toggle('active', inMini);
@@ -408,9 +457,11 @@
       } else {
         stateBadgeEl.textContent = 'MINI EXPLORE';
       }
-      controlHintEl.textContent = STATE.surface === 'desk'
-        ? 'WASD 桌面漫步 · 边缘返回地面 · E 查看'
-        : 'WASD / 单击移动 · 拖拽镜头 · E 交互 · Esc 退出';
+      controlHintEl.textContent = STATE.mode === 'OBJECT_PREVIEW' ? 'E 查看 · Esc 返回'
+        : STATE.mode === 'AUTO_TRAVERSAL' ? 'Esc 返回'
+        : STATE.mouseCaptured ? 'WASD 移动 · 鼠标视角 · E 交互 · Esc 释放'
+        : STATE.lockUnavailable ? 'WASD / 单击移动 · 拖拽视角 · Esc 退出'
+        : '点击画面继续探索 · F 退出';
     }
 
     // Wall Lift Exhibit Preview card
@@ -511,11 +562,13 @@
 
     STATE.mode = 'MINI_WALKING';
     updateUI();
-    showToast('已进入 Mini Explore · WASD 或单击地面移动，靠近工作台自动登桌');
+    captureMiniMouse();
   }
 
   function exitMiniExplore({ jumpToNearest = true } = {}) {
     if (STATE.mode === 'GUIDED') return;
+    releaseMiniMouse();
+    STATE.focusReturn = null;
     STATE.mode = 'GUIDED';
     STATE.keys.clear();
     STATE.walkTarget = null;
@@ -624,6 +677,7 @@
   }
 
   function startWallLift(exhibit) {
+    releaseMiniMouse();
     STATE.mode = 'AUTO_TRAVERSAL';
     STATE.walkTarget = null;
     STATE.liftIntentTimer = 0;
@@ -697,7 +751,7 @@
       STATE.preReadingMode = STATE.mode;
     }
     STATE.mode = 'READING';
-    STATE.keys.clear();
+    releaseMiniMouse();
 
     readingIndexEl.textContent = `RIZET NGAN / ${data.index}`;
     readingBodyEl.innerHTML = `
@@ -742,7 +796,7 @@
   function openHelp() {
     if (STATE.mode === 'READING') closeReading();
     STATE.helpOpen = true;
-    STATE.keys.clear();
+    releaseMiniMouse();
     helpOverlayEl.classList.add('open');
     helpOverlayEl.setAttribute('aria-hidden', 'false');
     setTimeout(() => helpModalEl.focus({ preventScroll: true }), 30);
@@ -751,6 +805,7 @@
   function closeHelp() {
     if (!STATE.helpOpen) return;
     STATE.helpOpen = false;
+    updateUI();
     helpOverlayEl.classList.remove('open');
     helpOverlayEl.setAttribute('aria-hidden', 'true');
   }
@@ -971,11 +1026,33 @@
   document.getElementById('helpDone').addEventListener('click', closeHelp);
   document.getElementById('helpBackdrop').addEventListener('click', closeHelp);
 
-  // Mini Explore uses a free orbit rig. Left-click selects, while left/right drag orbits.
-  // A small movement threshold distinguishes a click-to-walk intent from camera motion.
+  // Pointer Lock provides unbounded mouse look; the original drag rig is the fallback.
+  document.addEventListener('pointerlockchange', () => {
+    const wasCaptured = STATE.mouseCaptured;
+    STATE.mouseCaptured = document.pointerLockElement === canvasEl;
+    if (STATE.mouseCaptured && (STATE.mode !== 'MINI_WALKING' || STATE.helpOpen)) {
+      releaseMiniMouse();
+    } else if (wasCaptured && !STATE.mouseCaptured) {
+      STATE.unlockedAt = performance.now();
+      stopMiniInput();
+    }
+    updateUI();
+  });
+  document.addEventListener('pointerlockerror', () => {
+    STATE.lockUnavailable = true;
+    updateUI();
+  });
+  document.addEventListener('mousemove', e => {
+    if (document.pointerLockElement !== canvasEl || STATE.helpOpen) return;
+    if (STATE.mode === 'MINI_WALKING' || STATE.mode === 'AUTO_TRAVERSAL') {
+      rotateMiniMouse(e.movementX || 0, e.movementY || 0);
+    }
+  });
+  // The fallback distinguishes a click-to-walk intent from a drag.
   canvasEl.addEventListener('contextmenu', e => e.preventDefault());
   canvasEl.addEventListener('pointerdown', (e) => {
-    if (STATE.mode === 'READING' || STATE.helpOpen || e.button > 2) return;
+    if (STATE.mode === 'READING' || STATE.helpOpen || e.button > 2 || document.pointerLockElement === canvasEl) return;
+    if (e.button === 0 && STATE.mode === 'MINI_WALKING' && captureMiniMouse()) return;
     STATE.isDragging = true;
     STATE.pointerId = e.pointerId;
     STATE.dragButton = e.button;
@@ -988,6 +1065,7 @@
   });
 
   window.addEventListener('pointermove', (e) => {
+    if (document.pointerLockElement === canvasEl) return;
     if (STATE.mode === 'GUIDED' && !STATE.helpOpen) {
       STATE.pointerParallax.x = THREE.MathUtils.clamp((e.clientX / window.innerWidth - 0.5) * 2, -1, 1);
       STATE.pointerParallax.y = THREE.MathUtils.clamp((e.clientY / window.innerHeight - 0.5) * 2, -1, 1);
@@ -998,8 +1076,7 @@
       if (Math.hypot(e.clientX - STATE.dragOrigin.x, e.clientY - STATE.dragOrigin.y) > 5) STATE.dragMoved = true;
       const orbitAllowed = STATE.mode === 'MINI_WALKING' || STATE.mode === 'OBJECT_PREVIEW';
       if (STATE.dragMoved && orbitAllowed) {
-        STATE.orbitYaw -= dx * 0.006;
-        STATE.orbitPitch = THREE.MathUtils.clamp(STATE.orbitPitch + dy * 0.0049, 0.07, 1.31);
+        rotateMiniMouse(dx * 1.5, dy * 1.5);
         STATE.dragStart = { x: e.clientX, y: e.clientY };
         viewportEl.classList.add('is-dragging');
       }
@@ -1034,6 +1111,8 @@
 
     if (key === 'escape') {
       e.preventDefault();
+      if (document.pointerLockElement === canvasEl) { releaseMiniMouse(); return; }
+      if (performance.now() - STATE.unlockedAt < 250 && !STATE.helpOpen && STATE.mode !== 'READING') return;
       if (STATE.helpOpen) { closeHelp(); return; }
       if (STATE.mode === 'READING') { closeReading(); return; }
       if (STATE.mode === 'OBJECT_PREVIEW') { cancelWallLift(); return; }
@@ -1043,6 +1122,12 @@
         STATE.surface = 'floor';
         STATE.traversal = null;
         STATE.activeExhibit = null;
+        if (STATE.focusReturn) {
+          STATE.orbitYaw = STATE.focusReturn.yaw;
+          STATE.orbitPitch = STATE.focusReturn.pitch;
+          STATE.orbitDist = STATE.focusReturn.distance;
+          STATE.focusReturn = null;
+        }
         STATE.mode = 'MINI_WALKING';
         world.miniCharacter.setAnim('idle');
         updateUI();
@@ -1097,7 +1182,8 @@
   });
 
   window.addEventListener('keyup', (e) => STATE.keys.delete(e.key.toLowerCase()));
-  window.addEventListener('blur', () => { STATE.keys.clear(); STATE.isDragging = false; STATE.pointerId = null; viewportEl.classList.remove('is-dragging'); });
+  window.addEventListener('blur', releaseMiniMouse);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) releaseMiniMouse(); });
 
   // In Mini Explore the wheel is a smooth zoom; in Guided it navigates chapters.
   window.addEventListener('wheel', (e) => {
@@ -1200,10 +1286,10 @@
     }
 
     // 2. Smooth velocity damping (never abrupt stop or instant snap)
-    const maxSpeed = STATE.surface === 'desk' ? 1.85 : 2.95;
+    const maxSpeed = STATE.surface === 'desk' ? 1.55 : 2.45;
     const targetVel = moveDir.clone().multiplyScalar(maxSpeed);
     const accel = moveDir.lengthSq() > 0.01 ? 9.5 : 11.0;
-    STATE.charVel.lerp(targetVel, Math.min(1, dt * accel));
+    STATE.charVel.lerp(targetVel, 1 - Math.exp(-dt * accel));
 
     const speed = STATE.charVel.length();
     let turnRate = 0;
@@ -1351,8 +1437,9 @@
   const CAM_MIN_CLEARANCE = 0.32;
 
   function updateCameraDirector(dt) {
-    const damp = prefersReducedMotion ? 1 : 1 - Math.exp(-dt * 5.2);
     const mode = STATE.mode;
+    if (mode === 'READING' || STATE.helpOpen) return; // Preserve the precise last frame.
+    const damp = prefersReducedMotion ? 1 : 1 - Math.exp(-dt * (mode === 'MINI_WALKING' ? 14 : 5.2));
 
     if (mode === 'GUIDED' || (mode === 'READING' && STATE.preReadingMode === 'GUIDED')) {
       const ch = CHAPTERS[STATE.chapterIdx];
@@ -1394,7 +1481,7 @@
       STATE.desiredCamPos.copy(boomSolved);
       STATE.desiredCamLook.copy(boomPivot);
       // Subtle target shift, not forced camera placement or reset to hardcoded angle.
-      if (STATE.focusedObject && mode === 'MINI_WALKING') {
+      if (STATE.focusedObject && mode === 'MINI_WALKING' && !STATE.mouseCaptured) {
         STATE.desiredCamLook.lerp(STATE.focusedObject.pos, 0.12);
       }
     }
@@ -1404,6 +1491,19 @@
     const positionDamp = reducingBoom ? Math.max(damp, 1 - Math.exp(-dt * 13)) : damp;
     STATE.camPos.lerp(STATE.desiredCamPos, positionDamp);
     STATE.camLook.lerp(STATE.desiredCamLook, damp);
+    // Recheck the interpolated camera segment: a damped orbit must not cut through
+    // a wall even when both its start and destination were valid.
+    if (mode === 'MINI_WALKING') {
+      const offset = new THREE.Vector3().subVectors(STATE.camPos, boomPivot);
+      const length = offset.length();
+      if (length > 0.12) {
+        cameraBoomRay.set(boomPivot, offset.normalize());
+        cameraBoomRay.near = 0.08;
+        cameraBoomRay.far = length;
+        const hits = cameraBoomRay.intersectObjects(world.cameraColliders || [], false);
+        if (hits.length) STATE.camPos.copy(boomPivot).addScaledVector(offset, Math.max(0.12, hits[0].distance - CAM_MIN_CLEARANCE));
+      }
+    }
     world.camera.position.copy(STATE.camPos);
     world.camera.lookAt(STATE.camLook);
   }
@@ -1413,9 +1513,9 @@
     const dt = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
 
-    if (STATE.mode === 'MINI_WALKING') {
+    if (!STATE.helpOpen && STATE.mode === 'MINI_WALKING') {
       updateMiniMovement(dt);
-    } else if (STATE.mode === 'AUTO_TRAVERSAL') {
+    } else if (!STATE.helpOpen && STATE.mode === 'AUTO_TRAVERSAL') {
       updateTraversal(dt);
     } else if (STATE.mode === 'OBJECT_PREVIEW') {
       world.miniCharacter.update(dt, 0, 0, 0, prefersReducedMotion);
@@ -1447,6 +1547,9 @@
       surface: STATE.surface,
       chapter: CHAPTERS[STATE.chapterIdx].id,
       charPos: STATE.charPos.toArray(),
+      cameraPos: STATE.camPos.toArray(),
+      orbitYaw: STATE.orbitYaw, orbitPitch: STATE.orbitPitch, orbitDist: STATE.orbitDist,
+      mouseCaptured: STATE.mouseCaptured, lockUnavailable: STATE.lockUnavailable,
       activeExhibit: STATE.activeExhibit ? STATE.activeExhibit.id : null,
       focusedObject: STATE.focusedObject ? STATE.focusedObject.id : null
     }),
