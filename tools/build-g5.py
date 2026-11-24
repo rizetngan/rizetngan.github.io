@@ -5,8 +5,19 @@ The live model and editorial photographs use the exact same geometry.
 import bpy, math, os, sys
 from pathlib import Path
 from mathutils import Vector
+from PIL import Image, ImageOps, ImageEnhance
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'assets'/'g5'; OUT.mkdir(parents=True,exist_ok=True)
+# Grade source wood and letterbox true UI at native aspect ratio.
+src=Image.open(ROOT/'assets/e2/walnut.jpg').convert('RGB')
+gray=ImageOps.grayscale(src)
+wood_image=ImageOps.colorize(gray,black=(50,33,22),white=(144,109,77))
+wood_image.save(OUT/'walnut-g5.jpg',quality=88)
+def padded(src,name,w,h):
+    img=Image.open(src).convert('RGB');img.thumbnail((w,h),Image.Resampling.LANCZOS)
+    cv=Image.new('RGB',(w,h),(25,30,27));cv.paste(img,((w-img.width)//2,(h-img.height)//2));cv.save(OUT/name,quality=94)
+padded(ROOT/'assets/actape-windows-preview.png','actape-screen.jpg',1200,648)
+padded(ROOT/'assets/snug-phone-running.png','snug-screen.jpg',600,1172)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 def V(x,y,z): return (x,-z,y)
 def rgb(h):
@@ -20,14 +31,14 @@ def mat(name,h,rough=.7,metal=0,texture=None,emission=0):
         t=m.node_tree.nodes.new('ShaderNodeTexImage');t.image=bpy.data.images.load(str(texture),check_existing=True)
         m.node_tree.links.new(t.outputs['Color'],n.inputs['Base Color'])
         if emission:
-            m.node_tree.links.new(t.outputs['Color'],n.inputs['Emission Color']);n.inputs['Emission Strength'].default_value=emission
+            m.node_tree.links.remove(n.inputs['Base Color'].links[0]);n.inputs['Base Color'].default_value=(.015,.015,.015,1);n.inputs['Specular IOR Level'].default_value=.04;m.node_tree.links.new(t.outputs['Color'],n.inputs['Emission Color']);n.inputs['Emission Strength'].default_value=emission
     elif emission:
         n.inputs['Emission Color'].default_value=rgb(h);n.inputs['Emission Strength'].default_value=emission
     return m
 wall=mat('Deep mineral green','3D493F',.91)
 stone=mat('Warm limestone','C8BBA3',.91)
 floor=mat('Warm polished concrete','82796A',.83)
-wood=mat('Smoked walnut','786047',.52,texture=ROOT/'assets/e2/walnut.jpg')
+wood=mat('Smoked walnut','786047',.52,texture=OUT/'walnut-g5.jpg')
 endwood=mat('Walnut end grain','634831',.72)
 ink=mat('Graphite powder coat','242825',.55,.12)
 alu=mat('Satin aluminium','A4AAA6',.32,.73)
@@ -37,8 +48,8 @@ fabric=mat('Olive woven upholstery','5D6655',.95)
 paper=mat('Paper stock','E4D8C1',.96)
 rubber=mat('Black rubber','161B18',.85)
 glass=mat('Display border','0E1412',.30,.15)
-act=mat('Actape real interface','FFFFFF',.45,texture=ROOT/'assets/actape-windows-preview.png',emission=.55)
-snug=mat('Snug real interface','FFFFFF',.45,texture=ROOT/'assets/snug-phone-running.png',emission=.55)
+act=mat('Actape real interface','FFFFFF',.45,texture=OUT/'actape-screen.jpg',emission=.65)
+snug=mat('Snug real interface','FFFFFF',.45,texture=OUT/'snug-screen.jpg',emission=.65)
 warm=mat('Warm luminous diffuser','F4C58E',.4,emission=3)
 def finish(o,name,m,bevel=0):
     o.name=name;o.data.materials.append(m)
@@ -191,21 +202,21 @@ def area(name,p,target,energy,color,size,shape='DISK',size_y=None):
     if size_y is not None:d.size_y=size_y
     o=bpy.data.objects.new(name,d);bpy.context.collection.objects.link(o);o.location=V(*p)
     o.rotation_euler=(Vector(V(*target))-o.location).to_track_quat('-Z','Y').to_euler();return o
-area('Window key',(-7.15,3.4,2.7),(0,1.1,0),2200,(1,.79,.56),5.2,'RECTANGLE',3.4)
-area('Soft ceiling bounce',(1.2,4.5,2.8),(0,1.2,-.3),420,(.74,.82,1),4)
+area('Window key',(-7.15,3.4,2.7),(0,1.1,0),1500,(1,.79,.56),5.2,'RECTANGLE',3.4)
+area('Soft ceiling bounce',(1.2,4.5,2.8),(0,1.2,-.3),185,(.74,.82,1),4)
 area('Warm desk practical',(1.44,1.83,-.57),(1.3,1.04,-.48),22,(1,.65,.34),.35)
-area('Archive key',(-.4,4.5,-2.6),(0,2.1,-5),350,(1,.82,.62),3.8)
-area('Camera fill',(3.3,3.6,5.3),(0,1.4,0),260,(.9,.94,1),4)
+area('Archive key',(-.4,4.5,-2.6),(0,2.1,-5),230,(1,.82,.62),3.8)
+area('Camera fill',(3.3,3.6,5.3),(0,1.4,0),100,(.9,.94,1),4)
 sun_data=bpy.data.lights.new('Afternoon sun','SUN');sun_data.energy=1.25;sun_data.angle=.075;sun_data.color=(1,.75,.5)
 sun=bpy.data.objects.new('Afternoon sun',sun_data);bpy.context.collection.objects.link(sun);sun.rotation_euler=Vector((1,.2,-.55)).to_track_quat('-Z','Y').to_euler()
 sc=bpy.context.scene;sc.world=bpy.data.worlds.new('Muted studio world');sc.world.use_nodes=True
 sc.world.node_tree.nodes['Background'].inputs['Color'].default_value=(.22,.25,.23,1);sc.world.node_tree.nodes['Background'].inputs['Strength'].default_value=.45
 camdata=bpy.data.cameras.new('Editorial camera');cam=bpy.data.objects.new('Editorial camera',camdata);bpy.context.collection.objects.link(cam);sc.camera=cam
 def pose(p,look,lens):
-    cam.location=V(*p);cam.rotation_euler=(Vector(V(*look))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.lens=lens
-pose((3.75,2.62,4.8),(-.23,1.46,-.23),43)
-sc.render.engine='CYCLES';sc.cycles.samples=32;sc.cycles.use_denoising=True
-sc.view_settings.view_transform='AgX';sc.view_settings.exposure=.35
+    cam.location=V(*p);cam.rotation_euler=(Vector(V(*look))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.lens=lens;cam.data.dof.use_dof=True;cam.data.dof.focus_distance=(Vector(V(*look))-cam.location).length;cam.data.dof.aperture_fstop=3.5
+pose((2.8,2.28,4.35),(.10,1.45,-.18),48)
+sc.render.engine='CYCLES';sc.cycles.samples=48;sc.cycles.use_denoising=True
+sc.view_settings.view_transform='AgX';sc.view_settings.exposure=.0
 # Try NVIDIA OptiX then CUDA; fall back to CPU cleanly.
 try:
     pref=bpy.context.preferences.addons['cycles'].preferences
@@ -239,7 +250,7 @@ def render(name,p,look,lens,w,h):
     except RuntimeError:
         sc.cycles.device='CPU';bpy.ops.render.render(write_still=True)
     print('RENDERED',name,(OUT/(name+'.jpg')).stat().st_size,flush=True)
-render('hero',(3.75,2.62,4.8),(-.23,1.46,-.23),43,1500,1040)
+render('hero',(2.8,2.28,4.35),(.10,1.45,-.18),48,1500,1040)
 render('studio',(4.8,3.1,6.7),(-1.0,1.5,-.9),30,1280,900)
 render('actape',(-.82,2.68,-.95),(-2.12,2.38,-5.0),54,1120,840)
 render('snug',(3.00,2.85,-1.22),(2.12,2.35,-5.0),60,1120,840)
