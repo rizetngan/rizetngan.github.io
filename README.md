@@ -58,3 +58,7 @@ This release still uses the uploaded WebGL implementation and procedural product
 ## V7 — Editorial Maquette (development branch)
 
 This branch contains the immersive Mini control pass, locally vendored Three.js, original project imagery, and first editorial material/prop iteration. See [QA_REPORT_V7.md](QA_REPORT_V7.md) for the tested revision, actual screenshots and remaining release gates. V7 is not yet approved for production.
+
+### V7.2 — Sculpted Atelier
+
+See [QA_REPORT_V72.md](QA_REPORT_V72.md) for the new cutaway architecture, authored furniture, camera composition and actual WebGL screenshots. Main is unchanged.
