@@ -857,6 +857,7 @@
     // Lectern & Plinth small obstacles
     const pillars = [
       { x: -4.65, z: -0.6, r: 0.56 },
+      { x: -1.50, z: -1.56, r: 0.40 },
       { x: 5.15, z: -1.2, r: 0.72 },
       { x: 5.45, z: 1.35, r: 0.52 }
     ];
@@ -881,6 +882,8 @@
     if (p.x > monitorBox.minX && p.x < monitorBox.maxX && p.z > monitorBox.minZ && p.z < monitorBox.maxZ) {
       p.z = monitorBox.maxZ;
     }
+    // Keep feet outside the original study model on the back-left of the desk.
+    if(p.x>-2.02&&p.x<-1.28&&p.z>-.94&&p.z<-.36)p.z=-.36;
     p.x = THREE.MathUtils.clamp(p.x, DESK_BOUNDS.minX + 0.16, DESK_BOUNDS.maxX - 0.16);
     p.z = THREE.MathUtils.clamp(p.z, DESK_BOUNDS.minZ + 0.16, DESK_BOUNDS.maxZ - 0.16);
     p.y = DESK_BOUNDS.topY;
