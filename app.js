@@ -165,9 +165,9 @@
       title: '入口前厅',
       zoneLabel: 'ENTRANCE',
       desc: '柔和自然光落入暖石前厅。向下滚动或点击空间，沿建筑走廊走入工坊。',
-      camPos: new THREE.Vector3(5.2, 3.1, 8.0),
-      camLook: new THREE.Vector3(-.2, 1.45, -.2),
-      spawnPos: new THREE.Vector3(0, 0, 4.8),
+      camPos: new THREE.Vector3(4.25, 2.75, 6.55),
+      camLook: new THREE.Vector3(-.1, 1.22, -.34),
+      spawnPos: new THREE.Vector3(0, 0, 4.25),
       contentId: 'about',
       revealZone: 'entrance'
     },
@@ -177,9 +177,9 @@
       title: '建筑探索走廊',
       zoneLabel: 'THE CORRIDOR',
       desc: '建筑线稿随距离逐步显影为石材与胡桃木，连接中央工作台与四周展区。',
-      camPos: new THREE.Vector3(0.24, 1.75, 9.65),
-      camLook: new THREE.Vector3(0.1, 1.24, -0.8),
-      spawnPos: new THREE.Vector3(0, 0, 4.8),
+      camPos: new THREE.Vector3(1.85, 2.06, 4.45),
+      camLook: new THREE.Vector3(0, 1.16, -.36),
+      spawnPos: new THREE.Vector3(0, 0, 3.45),
       contentId: 'lab',
       revealZone: 'corridor'
     },
@@ -189,9 +189,9 @@
       title: '原型工作台',
       zoneLabel: 'PROTOTYPE BENCH',
       desc: '空间的视觉核心：胡桃木工作台、显示器、竖屏设备与建筑草图。按 F 可让 Mini 角色跃上桌面。',
-      camPos: new THREE.Vector3(2.8, 2.28, 4.35),
-      camLook: new THREE.Vector3(.10, 1.45, -.18),
-      spawnPos: new THREE.Vector3(0, 0, 2.35),
+      camPos: new THREE.Vector3(2.33, 1.57, 2.85),
+      camLook: new THREE.Vector3(-.12, 1.16, -.25),
+      spawnPos: new THREE.Vector3(0, 0, 1.75),
       contentId: 'lab',
       revealZone: 'lab'
     },
@@ -201,9 +201,9 @@
       title: '作品档案厅',
       zoneLabel: 'WORK ARCHIVE',
       desc: '收录独立作品 Actape 与 Snug for Windows。点击展框打开详情，或在 Mini 模式下靠近展品后按 E 查看。',
-      camPos: new THREE.Vector3(0, 3.02, 0.75),
-      camLook: new THREE.Vector3(0, 2.14, -5.2),
-      spawnPos: new THREE.Vector3(0, 0, -2.5),
+      camPos: new THREE.Vector3(3.25, 2.15, 2.65),
+      camLook: new THREE.Vector3(1.32, 1.65, -3.38),
+      spawnPos: new THREE.Vector3(1.98, 0, -2.55),
       contentId: 'actape',
       revealZone: 'actape'
     },
@@ -213,9 +213,9 @@
       title: '笔记书架',
       zoneLabel: 'NOTES LIBRARY',
       desc: '关于 AI 产品工作流、交互克制与独立创造的阶段性思考与拆解。',
-      camPos: new THREE.Vector3(-2.1, 2.05, 1.45),
-      camLook: new THREE.Vector3(-5.8, 1.55, -0.6),
-      spawnPos: new THREE.Vector3(-3.3, 0, -0.4),
+      camPos: new THREE.Vector3(-2.25, 2.1, 1.25),
+      camLook: new THREE.Vector3(-2.45, .95, -2.6),
+      spawnPos: new THREE.Vector3(-2.4, 0, -.9),
       contentId: 'notes',
       revealZone: 'notes'
     },
@@ -225,17 +225,17 @@
       title: '关于 rizet ngan.',
       zoneLabel: 'ABOUT',
       desc: '商业实践与独立创造并行的长期个人品牌，所有内容源于真实经历与作品。',
-      camPos: new THREE.Vector3(2.2, 1.95, 1.35),
-      camLook: new THREE.Vector3(5.4, 1.45, -1.2),
-      spawnPos: new THREE.Vector3(3.4, 0, -0.8),
+      camPos: new THREE.Vector3(2.70, 2.02, 1.05),
+      camLook: new THREE.Vector3(2.12, 2.43, -3.35),
+      spawnPos: new THREE.Vector3(2.6, 0, -.90),
       contentId: 'about',
       revealZone: 'about'
     }
   ];
 
   // ==================== INTERACTION ZONES & COLLISION ====================
-  const DESK_BOUNDS = { minX: -2.35, maxX: 2.35, minZ: -1.15, maxZ: 1.15, topY: 1.02 };
-  const FLOOR_BOUNDS = { minX: -5.7, maxX: 5.7, minZ: -4.55, maxZ: 10.6 };
+  const DESK_BOUNDS = { minX: -1.225, maxX: 1.225, minZ: -.615, maxZ: .615, topY: .79 };
+  const FLOOR_BOUNDS = { minX: -4.06, maxX: 4.06, minZ: -3.48, maxZ: 5.12 };
 
   const WALL_EXHIBITS = [
     {
@@ -243,37 +243,36 @@
       title: 'Actape',
       eyebrow: 'WORK ARCHIVE / 01',
       lead: CONTENT_DATA.actape.lead,
-      triggerCenter: new THREE.Vector3(-2.12, 0, -3.72),
-      triggerRadius: 1.05,
+      triggerCenter: new THREE.Vector3(-2.48, 0, -2.24),
+      triggerRadius: .95,
       wallDir: new THREE.Vector3(0, 0, -1),
-      hoverPos: new THREE.Vector3(-3.35, 1.68, -3.85),
-      safeFloorPos: new THREE.Vector3(-2.12, 0, -3.25),
-      camPos: new THREE.Vector3(-1.95, 2.38, -2.05),
-      camLook: new THREE.Vector3(-2.12, 2.35, -5.2)
+      hoverPos: new THREE.Vector3(-2.51, 1.18, -2.52),
+      safeFloorPos: new THREE.Vector3(-2.45, 0, -1.78),
+      camPos: new THREE.Vector3(-1.55, 1.95, -1.0),
+      camLook: new THREE.Vector3(-2.45, 1.05, -2.64)
     },
     {
       id: 'snug',
       title: 'Snug for Windows',
       eyebrow: 'WORK ARCHIVE / 02',
       lead: CONTENT_DATA.snug.lead,
-      triggerCenter: new THREE.Vector3(2.12, 0, -3.72),
-      triggerRadius: 1.05,
+      triggerCenter: new THREE.Vector3(2.05, 0, -2.72),
+      triggerRadius: .90,
       wallDir: new THREE.Vector3(0, 0, -1),
-      hoverPos: new THREE.Vector3(3.35, 1.68, -3.85),
-      safeFloorPos: new THREE.Vector3(2.12, 0, -3.25),
-      camPos: new THREE.Vector3(1.95, 2.38, -2.05),
-      camLook: new THREE.Vector3(2.12, 2.35, -5.2)
+      hoverPos: new THREE.Vector3(2.13, 1.84, -3.28),
+      safeFloorPos: new THREE.Vector3(2.10, 0, -2.25),
+      camPos: new THREE.Vector3(2.55, 2.46, -1.42),
+      camLook: new THREE.Vector3(2.15, 2.32, -3.38)
     }
   ];
 
   const FOCUS_OBJECTS = [
-    { id: 'lab', label: 'Studio Monitor · Prototype Bench', surface: 'desk', pos: new THREE.Vector3(-0.15, 1.02, -0.35), radius: 1.05, camOffset: new THREE.Vector3(0.45, 0.95, 1.65) },
-    { id: 'snug', label: 'Mobile Prototype · Snug for Windows', surface: 'desk', pos: new THREE.Vector3(1.05, 1.02, -0.18), radius: 0.72, camOffset: new THREE.Vector3(0.65, 0.85, 1.45) },
-    { id: 'notes', label: 'Drafting Sketchpad · Notes', surface: 'desk', pos: new THREE.Vector3(-1.42, 1.02, 0.08), radius: 0.78, camOffset: new THREE.Vector3(-0.55, 0.95, 1.45) },
-    { id: 'notes', label: 'Notes Library · 笔记书架', surface: 'floor', pos: new THREE.Vector3(-4.55, 0, -0.6), radius: 1.45, camOffset: new THREE.Vector3(1.7, 1.6, 1.6) },
-    { id: 'about', label: 'About Corner · 关于 rizet ngan.', surface: 'floor', pos: new THREE.Vector3(4.55, 0, -1.2), radius: 1.45, camOffset: new THREE.Vector3(-1.7, 1.6, 1.6) }
+    { id: 'lab', label: 'Actape · 工作台', surface: 'desk', pos: new THREE.Vector3(-.16,.79,-.27), radius: .63, camOffset: new THREE.Vector3(.38,.83,1.30) },
+    { id: 'snug', label: 'Snug · 竖屏设备', surface: 'desk', pos: new THREE.Vector3(.65,.79,-.17), radius: .52, camOffset: new THREE.Vector3(.50,.74,1.16) },
+    { id: 'notes', label: '设计手稿', surface: 'desk', pos: new THREE.Vector3(-.84,.79,.27), radius: .38, camOffset: new THREE.Vector3(-.38,.75,1.05) },
+    { id: 'notes', label: '低柜与创作档案', surface: 'floor', pos: new THREE.Vector3(-2.48,0,-2.24), radius: 1.02, camOffset: new THREE.Vector3(1.25,1.35,1.25) },
+    { id: 'about', label: '工作室墙面', surface: 'floor', pos: new THREE.Vector3(2.15,0,-2.70), radius: 1.04, camOffset: new THREE.Vector3(-1.20,1.48,1.22) }
   ];
-
   // ==================== CHECK WEBGL SUPPORT ====================
   let world = null;
   try {
@@ -338,8 +337,8 @@
     desiredCamLook: CHAPTERS[0].camLook.clone(),
     orbitYaw: 0,
     orbitPitch: 0.40, // ~23° relaxed eye-level exploration; adjustable from 4° to 75°
-    orbitDist: 2.85, // user-requested camera arm length; does not change on collision
-    collisionDist: 2.85, // actual arm length after architectural obstruction
+    orbitDist: 2.20, // user-requested camera arm length; does not change on collision
+    collisionDist: 2.20, // actual arm length after architectural obstruction
     focusReturn: null, // saved user-selected view before cinematic exhibit framing
     pointerId: null,
     mouseCaptured: false,
@@ -498,10 +497,10 @@
 
   function inferZoneLabelFromPos(pos) {
     if (STATE.surface === 'desk') return 'PROTOTYPE BENCH';
-    if (pos.z > 7.2) return 'ENTRANCE';
-    if (pos.z > 2.6) return 'THE CORRIDOR';
+    if (pos.z > 4.0) return 'ENTRANCE';
+    if (pos.z > 2.1) return 'THE CORRIDOR';
     if (pos.z < -2.6) return 'WORK ARCHIVE';
-    if (pos.x < -3.0) return 'NOTES LIBRARY';
+    if (pos.x < -2.2) return 'NOTES LIBRARY';
     if (pos.x > 3.0) return 'ABOUT';
     return 'PROTOTYPE BENCH';
   }
@@ -563,7 +562,7 @@
     STATE.targetYaw = STATE.charYaw;
     STATE.orbitYaw = STATE.charYaw - Math.PI;
     STATE.orbitPitch = 0.40; // ~23° natural follow, never forced back after interacting
-    STATE.orbitDist = 2.85;
+    STATE.orbitDist = 2.20;
     const resume=STATE.miniResume;
     if(resume && resume.chapter===STATE.chapterIdx){
       STATE.surface=resume.surface;
@@ -638,16 +637,16 @@
 
   // ==================== CONTEXTUAL ACTIONS: AUTO MOUNT & WALL LIFT ====================
   function isNearDeskMount(pos) {
-    return Math.abs(pos.x) <= 1.55 && pos.z >= 1.15 && pos.z <= 2.15;
+    return Math.abs(pos.x) <= .75 && pos.z >= .72 && pos.z <= 1.72;
   }
 
   function startAutoMount() {
     STATE.mode = 'AUTO_TRAVERSAL';
     STATE.walkTarget = null;
     STATE.mountIntentTimer = 0;
-    const landX = THREE.MathUtils.clamp(STATE.charPos.x, -1.35, 1.35);
+    const landX = THREE.MathUtils.clamp(STATE.charPos.x, -.62, .62);
     const startPos = STATE.charPos.clone();
-    const endPos = new THREE.Vector3(landX, DESK_BOUNDS.topY, 0.62);
+    const endPos = new THREE.Vector3(landX, DESK_BOUNDS.topY, .43);
 
     world.miniCharacter.setAnim('mount');
     STATE.traversal = {
@@ -680,10 +679,10 @@
     landPos.y = 0;
     if (Math.abs(exitDir.z) >= Math.abs(exitDir.x)) {
       landPos.z = exitDir.z > 0 ? DESK_BOUNDS.maxZ + 0.58 : DESK_BOUNDS.minZ - 0.58;
-      landPos.x = THREE.MathUtils.clamp(landPos.x, -2.1, 2.1);
+      landPos.x = THREE.MathUtils.clamp(landPos.x, -1.0, 1.0);
     } else {
       landPos.x = exitDir.x > 0 ? DESK_BOUNDS.maxX + 0.58 : DESK_BOUNDS.minX - 0.58;
-      landPos.z = THREE.MathUtils.clamp(landPos.z, -1.0, 1.0);
+      landPos.z = THREE.MathUtils.clamp(landPos.z, -.46, .46);
     }
 
     world.miniCharacter.setAnim('mount');
@@ -872,7 +871,8 @@
     // Architectural arch feet, timber screen and low wing. The visual model and
     // floor traversal use the same footprint, with a small body radius.
     const archObstacles = [
-      [-6.5,-5.45,.20,5.08]
+      [-3.50,-1.55,-3.03,-2.20],
+      [3.65,4.09,-3.82,-1.30]
     ];
     archObstacles.forEach(([l,r,b,f])=>{
       if(p.x<=l||p.x>=r||p.z<=b||p.z>=f)return;
@@ -882,9 +882,8 @@
 
     // Lectern & Plinth small obstacles
     const pillars = [
-      { x: -4.65, z: -0.6, r: 0.56 },
-      { x: -1.95, z: -1.67, r: 0.42 },
-      { x: 5.15, z: -1.2, r: 0.72 }
+      {x: -.50,z:-1.18,r:.43},
+      {x: 2.40,z:-2.57,r:.46}
     ];
     pillars.forEach(ob => {
       const dx = p.x - ob.x;
@@ -903,13 +902,11 @@
   function resolveDeskCollision(nextPos) {
     const p = nextPos.clone();
     // Monitor & lamp soft bounds on desk
-    const monitorBox = { minX: -1.18, maxX: .88, minZ: -0.78, maxZ: -0.18 };
-    if (p.x > monitorBox.minX && p.x < monitorBox.maxX && p.z > monitorBox.minZ && p.z < monitorBox.maxZ) {
-      p.z = monitorBox.maxZ;
-    }
-    // Keep feet outside the original study model on the back-left of the desk.
-    if(p.x>.93&&p.x<1.44&&p.z>-.48&&p.z<.02)p.z=.02;
-    if(p.x>1.57&&p.x<2.07&&p.z>-.95&&p.z<-.44)p.z=-.44;
+    const monitorBox = {minX: -.59,maxX:.33,minZ:-.49,maxZ:-.05};
+    if (p.x>monitorBox.minX && p.x<monitorBox.maxX &&
+        p.z>monitorBox.minZ && p.z<monitorBox.maxZ) p.z=monitorBox.maxZ;
+    // Sculptural lamp sits on the far-right edge.
+    if(p.x>.80 && p.x<1.19 && p.z>-.52 && p.z<-.10)p.z=-.10;
     p.x = THREE.MathUtils.clamp(p.x, DESK_BOUNDS.minX + 0.16, DESK_BOUNDS.maxX - 0.16);
     p.z = THREE.MathUtils.clamp(p.z, DESK_BOUNDS.minZ + 0.16, DESK_BOUNDS.maxZ - 0.16);
     p.y = DESK_BOUNDS.topY;
@@ -1195,7 +1192,7 @@
       e.preventDefault();
       STATE.orbitYaw = STATE.charYaw - Math.PI;
       STATE.orbitPitch = 0.40;
-      STATE.orbitDist = 2.85;
+      STATE.orbitDist = 2.20;
       return;
     }
 
@@ -1240,7 +1237,7 @@
     if (STATE.mode === 'MINI_WALKING' || STATE.mode === 'OBJECT_PREVIEW' || STATE.mode === 'AUTO_TRAVERSAL') {
       if (e.target.closest?.('.reading-overlay, .help-overlay')) return;
       e.preventDefault();
-      STATE.orbitDist = THREE.MathUtils.clamp(STATE.orbitDist * Math.exp(e.deltaY * 0.0012), 1.9, 5.8);
+      STATE.orbitDist = THREE.MathUtils.clamp(STATE.orbitDist * Math.exp(e.deltaY * 0.0012), 1.6, 5.8);
       return;
     }
     if (STATE.mode !== 'GUIDED') return;
@@ -1476,8 +1473,8 @@
       const py = prefersReducedMotion || mode === 'READING' ? 0 : -STATE.pointerParallax.y * 0.12;
       const portrait = world.camera.aspect < .85;
       if (ch.id === 'entrance' && portrait) {
-        STATE.desiredCamPos.set(3.6, 3.0, 8.8);
-        STATE.desiredCamLook.set(0, 1.4, -.15);
+        STATE.desiredCamPos.set(3.32, 2.65, 6.1);
+        STATE.desiredCamLook.set(0, 1.15, -.25);
       } else {
         STATE.desiredCamPos.set(ch.camPos.x + px, ch.camPos.y + py, ch.camPos.z);
         STATE.desiredCamLook.copy(ch.camLook);
